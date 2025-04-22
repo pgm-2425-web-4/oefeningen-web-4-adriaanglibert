@@ -11,19 +11,27 @@
   mask-mode: luminance;
 
   & .marquee__group {
-    position: relative;
-    height: var(--spacing-lg);
-    width: 100%;
     padding: 0;
     list-style: none;
     display: flex;
-    align-items: center;
     gap: var(--spacing-base);
+    animation: looping infinite 20s linear;
 
     & > li {
-      position: absolute;
-      right: 0;
-      animation: looping 10s infinite linear;
+      display: inline-flex;
+      gap: var(--spacing-base);
+
+      &:nth-child(odd) {
+        &::before {
+          content: url("/assets/arrow-right.svg");
+        }
+      }
+
+      &:nth-child(even) {
+        &::before {
+          content: url("/assets/double-arrow.svg");
+        }
+      }
     }
   }
 }
@@ -33,6 +41,6 @@
     translate: 0 0;
   }
   to {
-    translate: -100% 0;
+    translate: calc(-100% - var(--spacing-base)) 0;
   }
 }
