@@ -1,0 +1,18 @@
+@import url("./abstracts/_variables.css");
+@import url("./base/_reset.css");
+@import url("./base/_fonts.css");
+@import url("./base/_typography.css");
+@import url("./components/_logo.css");
+@import url("./components/_btn.css");
+@import url("./components/_marquee.css");
+@import url("./layout/_nav.css");
+
+.container {
+  max-width: var(--container-width);
+  margin-inline: auto;
+  padding-inline: var(--spacing-base);
+
+  @media screen and (min-width: 768px) {
+    padding-inline: var(--spacing-lg);
+  }
+}

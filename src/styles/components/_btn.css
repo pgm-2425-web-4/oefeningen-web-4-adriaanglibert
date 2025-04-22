@@ -1,0 +1,37 @@
+.button {
+  display: inline-flex;
+  position: relative;
+  padding: var(--spacing-base) var(--spacing-base);
+  border-radius: var(--spacing-lg);
+  text-decoration: none;
+  overflow: hidden;
+  color: var(--background-color);
+  transition: color 0.5s ease;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  &::before {
+    background-color: var(--foreground-color);
+    z-index: -2;
+  }
+
+  &::after {
+    background-color: var(--muted-color);
+    clip-path: circle(0% at 0 150%);
+    transition: clip-path 1.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    z-index: -1;
+  }
+
+  &:hover {
+    color: var(--foreground-color);
+
+    &::after {
+      clip-path: circle(200% at 0 100%);
+    }
+  }
+}

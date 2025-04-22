@@ -1,0 +1,17 @@
+{
+  "name": "oefeningen-web-4-adriaanglibert",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "watch": "mix watch",
+    "build": "mix --production"
+  },
+  "author": "Adriaan Glibert",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "browser-sync": "^3.0.4",
+    "browser-sync-webpack-plugin": "^2.3.0",
+    "laravel-mix": "^6.0.49"
+  }
+}

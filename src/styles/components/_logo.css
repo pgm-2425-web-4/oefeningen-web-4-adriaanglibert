@@ -1,0 +1,21 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-base);
+  color: var(--foreground-color);
+  text-decoration: none;
+  font-size: var(--font-base);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: var(--spacing-xs);
+
+  & .logo__icon {
+    aspect-ratio: 1;
+    width: var(--spacing-base);
+  }
+
+  & .logo__text {
+    position: relative;
+    top: 2px;
+  }
+}

@@ -1,0 +1,38 @@
+.marquee {
+  display: flex;
+  gap: var(--spacing-base);
+  mask-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(255, 255, 255, 1) 20%,
+    rgba(255, 255, 255, 1) 80%,
+    rgba(0, 0, 0, 1) 100%
+  );
+  mask-mode: luminance;
+
+  & .marquee__group {
+    position: relative;
+    height: var(--spacing-lg);
+    width: 100%;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-base);
+
+    & > li {
+      position: absolute;
+      right: 0;
+      animation: looping 10s infinite linear;
+    }
+  }
+}
+
+@keyframes looping {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: -100% 0;
+  }
+}
