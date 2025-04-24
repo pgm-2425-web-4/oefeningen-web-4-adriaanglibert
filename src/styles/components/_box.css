@@ -1,0 +1,6 @@
+.box {
+  width: var(--spacing-lg);
+  aspect-ratio: 1;
+  background-color: var(--accent-color);
+  margin-bottom: var(--spacing-base);
+}

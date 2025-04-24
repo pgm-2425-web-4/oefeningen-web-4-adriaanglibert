@@ -4,12 +4,20 @@
 @import url("./base/_typography.css");
 @import url("./components/_logo.css");
 @import url("./components/_btn.css");
+@import url("./components/_box.css");
 @import url("./components/_marquee.css");
+@import url("./components/_link.css");
 @import url("./layout/_nav.css");
 
 body {
   background-color: var(--background-color);
   color: var(--foreground-color);
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .container {

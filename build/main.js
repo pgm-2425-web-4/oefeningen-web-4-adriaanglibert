@@ -1,13 +1,137 @@
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/scripts/animations/flip.js":
+/*!****************************************!*\
+  !*** ./src/scripts/animations/flip.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+function initFlipAnimation() {
+  var $flipItems = document.querySelectorAll("[data-animation='flip']");
+  $flipItems.forEach(function ($flipItem) {
+    var html = $flipItem.innerHTML.split('</svg>');
+    var svg = html[0];
+    var text = html[1];
+    $flipItem.innerHTML = "".concat(svg, " <div>\n            <span>").concat(text, "</span>\n            <span>").concat(text, "</span>\n        </div>");
+    var $flipParent = $flipItem.querySelector('div');
+    var $flipChildren = $flipParent.querySelectorAll('span');
+    var $flipChild = $flipParent.querySelector('span:nth-child(2)');
+    $flipParent.style.position = 'relative';
+    $flipParent.style.overflow = 'hidden';
+    Object.assign($flipChild.style, {
+      position: 'absolute',
+      inset: 0
+    });
+    var animations = [];
+    $flipChildren.forEach(function ($flipChild, i) {
+      $flipChild.style.display = 'block';
+      var animation = $flipChild.animate([{
+        translate: "0 ".concat(i === 0 ? '0' : '-100%')
+      }, {
+        translate: "0 ".concat(i === 0 ? '100%' : '0')
+      }], {
+        duration: 200,
+        iterations: 1,
+        fill: "forwards"
+      });
+      animation.pause();
+      animations.push(animation);
+    });
+    function playAnimation() {
+      animations.forEach(function (animation) {
+        animation.play();
+      });
+    }
+    function reverseAnimation() {
+      animations.forEach(function (animation) {
+        return animation.reverse();
+      });
+    }
+    $flipItem.addEventListener('mouseenter', function () {
+      playAnimation();
+    });
+    $flipItem.addEventListener('mouseleave', function () {
+      reverseAnimation();
+    });
+  });
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initFlipAnimation);
+
+/***/ }),
 
 /***/ "./src/scripts/main.js":
 /*!*****************************!*\
   !*** ./src/scripts/main.js ***!
   \*****************************/
-/***/ (() => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _animations_flip__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animations/flip */ "./src/scripts/animations/flip.js");
 
+document.addEventListener('DOMContentLoaded', function () {
+  (0,_animations_flip__WEBPACK_IMPORTED_MODULE_0__["default"])();
+});
+
+// const $box = document.getElementById('box');
+// const $playButton = document.getElementById('play');
+
+// const boxAnimation = $box.animate([
+//     { opacity: 0, scale: 0, backgroundColor: '#000' },
+//     { opacity: 1, scale: 1, backgroundColor: "red" }
+// ], {
+//     duration: 200,
+//     iterations: 5
+// });
+
+// boxAnimation.pause();
+
+// $playButton.addEventListener('click', () => {
+//     boxAnimation.play();
+// })
+
+// function staggerItems($elements) {
+//     const keyframes = [
+//         { translate: '0 0' },
+//         { translate: '300px 0' },
+//     ];
+
+//     [...$elements].forEach(($element, i) => {
+//         $element.animate(keyframes, {
+//             iterations: 1,
+//             duration: 400,
+//             delay: i * 100,
+//             easing: "cubic-bezier(0.42, 0, 0.58, 1)",
+//             fill: "forwards"
+//         })
+//     });
+// }
+
+// function initTriggers() {
+//     const $triggers = document.querySelectorAll("[animation-target]");
+
+//     $triggers.forEach($trigger => {
+//         $trigger.addEventListener('click', () => {
+//             const target = $trigger.getAttribute("animation-target");
+
+//             const $staggerParent = document.querySelector(`[animation-name='${target}']`);
+
+//             if (!$staggerParent || $staggerParent.getAttribute("data-animation='stagger-items'")) {
+//                 alert('Er is geen element gevonden dat geanimeerd moet worden');
+//                 return;
+//             }
+
+//             staggerItems($staggerParent.children);
+//         })
+//     });
+// }
+
+// initTriggers();
 
 /***/ }),
 
@@ -17,7 +141,6 @@
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 
@@ -83,6 +206,18 @@ __webpack_require__.r(__webpack_exports__);
 /******/ 				}
 /******/ 			}
 /******/ 			return result;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
 /******/ 		};
 /******/ 	})();
 /******/ 	

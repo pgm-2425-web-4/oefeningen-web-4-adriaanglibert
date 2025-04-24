@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Stable Studio - Design agency</title>
+        <link rel="stylesheet" href="build/main.css">
+    </head>
+    <body>
+        <div id="box" style="background-color: red; padding: 1rem; width: 2rem; height: 2rem;"></div>
+
+        <ul animation-name="box-list" data-animation="stagger-items">
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+        </ul>
+
+        <button animation-target="box-list">
+            Play Animation
+        </button>
+
+        <ul animation-name="box-list-alt" data-animation="stagger-items">
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+            <li class="box"></li>
+        </ul>
+
+        <button animation-target="box-list-alt">
+            Play Alt Animation
+        </button>
+
+
+
+        <button id="play">play</button>
+
+        <script src="build/main.js"></script>
+    </body>
+</html>

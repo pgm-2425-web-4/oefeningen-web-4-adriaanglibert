@@ -1,0 +1,17 @@
+.link {
+  all: unset;
+  display: inline-flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+  font-weight: 600;
+
+  & .link__icon {
+    width: var(--spacing-base);
+    height: var(--spacing-base);
+    flex-shrink: 0;
+  }
+
+  &:focus {
+    outline: 1px solid var(--accent-color);
+  }
+}

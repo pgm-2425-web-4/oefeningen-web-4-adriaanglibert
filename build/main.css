@@ -240,6 +240,13 @@ h1 {
   }
 }
 
+.box {
+  width: var(--spacing-lg);
+  aspect-ratio: 1;
+  background-color: var(--accent-color);
+  margin-bottom: var(--spacing-base);
+}
+
 .marquee {
   display: flex;
   gap: var(--spacing-base);
@@ -307,6 +314,24 @@ h1 {
   }
 }
 
+.link {
+  all: unset;
+  display: inline-flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+  font-weight: 600;
+
+  & .link__icon {
+    width: var(--spacing-base);
+    height: var(--spacing-base);
+    flex-shrink: 0;
+  }
+
+  &:focus {
+    outline: 1px solid var(--accent-color);
+  }
+}
+
 .nav {
   display: flex;
   justify-content: space-between;
@@ -320,6 +345,12 @@ h1 {
 body {
   background-color: var(--background-color);
   color: var(--foreground-color);
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .container {
