@@ -2,9 +2,12 @@
   --black: #262625;
   --white: #f4f4f2;
   --gray: #a1a1a1;
+  --green: #709190;
 
+  --2xs: 0.1rem;
   --xs: 0.5rem;
   --sm: 0.625rem;
+  --n: 0.825rem;
   --base: 1rem;
   --md: 1.25rem;
   --lg: 2rem;
@@ -14,18 +17,22 @@
   --background-color: var(--white);
   --foreground-color: var(--black);
   --muted-color: var(--gray);
+  --accent-color: var(--green);
 
   --font-sans: "PP Mori";
 
-  --container-width: 64rem;
+  --container-width: 84rem;
 
+  --spacing-mini: var(--2xs);
   --spacing-xs: var(--xs);
   --spacing-sm: var(--sm);
   --spacing-base: var(--md);
-  --spacing-lg: var(--xl);
+  --spacing-lg: var(--lg);
+  --spacing-xl: var(--xl);
   --spacing-section: var(--2xl);
 
-  --font-base: var(--base);
+  --font-small: var(--sm);
+  --font-base: var(--n);
   --font-lg: var(--lg);
   --font-lead: var(--xl);
 }
@@ -160,6 +167,13 @@ h6 {
 
 body {
   font-family: var(--font-sans), sans-serif;
+  font-size: var(--font-base);
+}
+
+h1 {
+  font-size: var(--font-lead);
+  line-height: 100%;
+  font-weight: 600;
 }
 
 .logo {
@@ -186,13 +200,16 @@ body {
 
 .button {
   display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   position: relative;
-  padding: var(--spacing-base) var(--spacing-base);
+  padding: var(--spacing-base) var(--spacing-lg);
   border-radius: var(--spacing-lg);
   text-decoration: none;
   overflow: hidden;
   color: var(--background-color);
-  transition: color 0.5s ease;
+  transition: color 0.25s ease;
+  font-weight: 600;
 
   &::before,
   &::after {
@@ -209,15 +226,16 @@ body {
   &::after {
     background-color: var(--muted-color);
     clip-path: circle(0% at 0 150%);
-    transition: clip-path 1.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: clip-path 1s cubic-bezier(0.165, 0.84, 0.44, 1);
     z-index: -1;
   }
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     color: var(--foreground-color);
 
     &::after {
-      clip-path: circle(200% at 0 100%);
+      clip-path: circle(150% at 0 100%);
     }
   }
 }
@@ -240,17 +258,30 @@ body {
     rgba(0, 0, 0, 1) 100%
   );
   mask-mode: luminance;
+  overflow: hidden;
+
+  text-transform: uppercase;
+  letter-spacing: 1;
+  font-weight: 600;
+  font-size: var(--font-base);
+  color: var(--gray);
 
   & .marquee__group {
     padding: 0;
     list-style: none;
     display: flex;
     gap: var(--spacing-base);
-    animation: looping infinite 20s linear;
+    animation: looping infinite 18s linear;
 
     & > li {
       display: inline-flex;
+      align-items: center;
+      line-height: 0.85;
       gap: var(--spacing-base);
+
+      &::before {
+        opacity: 0.25;
+      }
 
       &:nth-child(odd) {
         &::before {
@@ -284,6 +315,11 @@ body {
   @media screen and (min-width: 768px) {
     padding-block: var(--spacing-lg);
   }
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--foreground-color);
 }
 
 .container {

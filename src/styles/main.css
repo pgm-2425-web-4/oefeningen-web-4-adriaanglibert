@@ -7,6 +7,11 @@
 @import url("./components/_marquee.css");
 @import url("./layout/_nav.css");
 
+body {
+  background-color: var(--background-color);
+  color: var(--foreground-color);
+}
+
 .container {
   max-width: var(--container-width);
   margin-inline: auto;

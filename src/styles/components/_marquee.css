@@ -9,17 +9,30 @@
     rgba(0, 0, 0, 1) 100%
   );
   mask-mode: luminance;
+  overflow: hidden;
+
+  text-transform: uppercase;
+  letter-spacing: 1;
+  font-weight: 600;
+  font-size: var(--font-base);
+  color: var(--gray);
 
   & .marquee__group {
     padding: 0;
     list-style: none;
     display: flex;
     gap: var(--spacing-base);
-    animation: looping infinite 20s linear;
+    animation: looping infinite 18s linear;
 
     & > li {
       display: inline-flex;
+      align-items: center;
+      line-height: 0.85;
       gap: var(--spacing-base);
+
+      &::before {
+        opacity: 0.25;
+      }
 
       &:nth-child(odd) {
         &::before {

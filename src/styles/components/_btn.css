@@ -1,12 +1,15 @@
 .button {
   display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   position: relative;
-  padding: var(--spacing-base) var(--spacing-base);
+  padding: var(--spacing-base) var(--spacing-lg);
   border-radius: var(--spacing-lg);
   text-decoration: none;
   overflow: hidden;
   color: var(--background-color);
-  transition: color 0.5s ease;
+  transition: color 0.25s ease;
+  font-weight: 600;
 
   &::before,
   &::after {
@@ -23,15 +26,16 @@
   &::after {
     background-color: var(--muted-color);
     clip-path: circle(0% at 0 150%);
-    transition: clip-path 1.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: clip-path 1s cubic-bezier(0.165, 0.84, 0.44, 1);
     z-index: -1;
   }
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     color: var(--foreground-color);
 
     &::after {
-      clip-path: circle(200% at 0 100%);
+      clip-path: circle(150% at 0 100%);
     }
   }
 }

@@ -2,9 +2,12 @@
   --black: #262625;
   --white: #f4f4f2;
   --gray: #a1a1a1;
+  --green: #709190;
 
+  --2xs: 0.1rem;
   --xs: 0.5rem;
   --sm: 0.625rem;
+  --n: 0.825rem;
   --base: 1rem;
   --md: 1.25rem;
   --lg: 2rem;
@@ -14,18 +17,22 @@
   --background-color: var(--white);
   --foreground-color: var(--black);
   --muted-color: var(--gray);
+  --accent-color: var(--green);
 
   --font-sans: "PP Mori";
 
-  --container-width: 64rem;
+  --container-width: 84rem;
 
+  --spacing-mini: var(--2xs);
   --spacing-xs: var(--xs);
   --spacing-sm: var(--sm);
   --spacing-base: var(--md);
-  --spacing-lg: var(--xl);
+  --spacing-lg: var(--lg);
+  --spacing-xl: var(--xl);
   --spacing-section: var(--2xl);
 
-  --font-base: var(--base);
+  --font-small: var(--sm);
+  --font-base: var(--n);
   --font-lg: var(--lg);
   --font-lead: var(--xl);
 }
