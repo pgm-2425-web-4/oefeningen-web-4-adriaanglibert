@@ -4,14 +4,22 @@
 @import url("./base/_typography.css");
 @import url("./components/_logo.css");
 @import url("./components/_btn.css");
+@import url("./components/_lead.css");
 @import url("./components/_box.css");
 @import url("./components/_marquee.css");
 @import url("./components/_link.css");
+@import url("./layout/_header.css");
 @import url("./layout/_nav.css");
+@import url("./layout/_section.css");
+@import url("./layout/_split.css");
+@import url("./layout/_wysiwyg.css");
 
 body {
   background-color: var(--background-color);
   color: var(--foreground-color);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ul {

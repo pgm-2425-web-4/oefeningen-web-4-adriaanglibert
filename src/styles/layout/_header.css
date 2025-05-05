@@ -1,0 +1,4 @@
+.header {
+  padding-block: var(--spacing-section);
+  padding-top: var(--spacing-extreme);
+}

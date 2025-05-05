@@ -1,0 +1,17 @@
+.wysiwyg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+
+  &.wysiwyg--upper {
+    text-transform: uppercase;
+  }
+
+  &.wysiwyg--medium {
+    font-weight: 600;
+  }
+
+  & .wysiwyg__muted {
+    color: var(--muted-color);
+  }
+}

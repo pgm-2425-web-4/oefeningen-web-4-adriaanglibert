@@ -4,6 +4,8 @@
   gap: var(--spacing-xs);
   align-items: center;
   font-weight: 600;
+  text-transform: initial;
+  cursor: pointer;
 
   & .link__icon {
     width: var(--spacing-base);

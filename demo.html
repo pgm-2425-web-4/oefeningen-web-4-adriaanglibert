@@ -7,23 +7,25 @@
         <link rel="stylesheet" href="build/main.css">
     </head>
     <body>
+        <h1 data-animation="blur">Dit is een test</h1>
+
         <div id="box" style="background-color: red; padding: 1rem; width: 2rem; height: 2rem;"></div>
 
         <ul animation-name="box-list" data-animation="stagger-items">
+            <li data-animation='box'' class="box"></li>
+            <li data-animation=' box' data-animation='fade' class="box"></li>
+            <li data-animation='box' class="box"></li>
+            <li data-animation=' box' class="box"></li>
+            <li data-animation='box' class="box"></li>
+            <li data-animation='box' class="box"></li>
+            <li data-animation='box' class="box"></li>
             <li class="box"></li>
-            <li class="box"></li>
-            <li class="box"></li>
-            <li class="box"></li>
-            <li class="box"></li>
-            <li class="box"></li>
-            <li class="box"></li>
-            <li class="box"></li>
-            <li class="box"></li>
+            <li data-animation='fade' class="box"></li>
             <li class="box"></li>
             <li class="box"></li>
         </ul>
 
-        <button animation-target="box-list">
+        <button data-animation='fade' animation-target="box-list">
             Play Animation
         </button>
 
@@ -39,9 +41,13 @@
             Play Alt Animation
         </button>
 
-
-
         <button id="play">play</button>
+
+        <section data-animation='fade' class="section">
+            <h2 data-animation='blur'>Section 1</h2>
+        </section>
+        <section data-animation='fade' class="section">Section 2</section>
+        <section data-animation='fade' class="section">Section 3</section>
 
         <script src="build/main.js"></script>
     </body>

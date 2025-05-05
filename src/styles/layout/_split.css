@@ -1,0 +1,16 @@
+.split {
+  container: split / inline-size;
+
+  & .split__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  @container split (min-width: 48rem) {
+    & .split__inner {
+      grid-template-columns: 2fr 1fr;
+      align-items: center;
+    }
+  }
+}
