@@ -1,5 +1,4 @@
 /******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
 /***/ "./node_modules/gsap/CSSPlugin.js":
@@ -8,6 +7,7 @@
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CSSPlugin: () => (/* binding */ CSSPlugin),
@@ -18,12 +18,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _gsap_core_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gsap-core.js */ "./node_modules/gsap/gsap-core.js");
 /*!
- * CSSPlugin 3.12.7
+ * CSSPlugin 3.13.0
  * https://gsap.com
  *
  * Copyright 2008-2025, GreenSock. All rights reserved.
- * Subject to the terms at https://gsap.com/standard-license or for
- * Club GSAP members, the agreement issued with that membership.
+ * Subject to the terms at https://gsap.com/standard-license
  * @author: Jack Doyle, jack@greensock.com
 */
 
@@ -475,6 +474,10 @@ _convertToUnit = function _convertToUnit(target, property, value, unit) {
   start += ""; // ensure values are strings
 
   end += "";
+
+  if (end.substring(0, 6) === "var(--") {
+    end = _getComputedProperty(target, end.substring(4, end.indexOf(")")));
+  }
 
   if (end === "auto") {
     startValue = target.style[prop];
@@ -1449,6 +1452,11 @@ var CSSPlugin = {
         if (isTransformRelated) {
           this.styles.save(p);
 
+          if (type === "string" && endValue.substring(0, 6) === "var(--") {
+            endValue = _getComputedProperty(target, endValue.substring(4, endValue.indexOf(")")));
+            endNum = parseFloat(endValue);
+          }
+
           if (!transformPropTween) {
             cache = target._gsap;
             cache.renderTransform && !vars.parseTransform || _parseTransform(target, vars.parseTransform); // if, for example, gsap.set(... {transform:"translateX(50vw)"}), the _get() call doesn't parse the transform, thus cache.renderTransform won't be set yet so force the parsing of the transform here.
@@ -1598,6 +1606,7 @@ _gsap_core_js__WEBPACK_IMPORTED_MODULE_0__.gsap.registerPlugin(CSSPlugin);
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Animation: () => (/* binding */ Animation),
@@ -1675,12 +1684,11 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.create(superClass.prototype); subClass.prototype.constructor = subClass; subClass.__proto__ = superClass; }
 
 /*!
- * GSAP 3.12.7
+ * GSAP 3.13.0
  * https://gsap.com
  *
  * @license Copyright 2008-2025, GreenSock. All rights reserved.
- * Subject to the terms at https://gsap.com/standard-license or for
- * Club GSAP members, the agreement issued with that membership.
+ * Subject to the terms at https://gsap.com/standard-license
  * @author: Jack Doyle, jack@greensock.com
 */
 
@@ -1859,9 +1867,12 @@ _parseRelative = function _parseRelative(start, value) {
     tween && tween._lazy && (tween.render(tween._lazy[0], tween._lazy[1], true)._lazy = 0);
   }
 },
+    _isRevertWorthy = function _isRevertWorthy(animation) {
+  return !!(animation._initted || animation._startAt || animation.add);
+},
     _lazySafeRender = function _lazySafeRender(animation, time, suppressEvents, force) {
   _lazyTweens.length && !_reverting && _lazyRender();
-  animation.render(time, suppressEvents, force || _reverting && time < 0 && (animation._initted || animation._startAt));
+  animation.render(time, suppressEvents, force || !!(_reverting && time < 0 && _isRevertWorthy(animation)));
   _lazyTweens.length && !_reverting && _lazyRender(); //in case rendering caused any tweens to lazy-init, we should render them because typically when someone calls seek() or time() or progress(), they expect an immediate render.
 },
     _numericIfPossible = function _numericIfPossible(value) {
@@ -3450,7 +3461,7 @@ var Animation = /*#__PURE__*/function () {
     this._rts = +value || 0;
     this._ts = this._ps || value === -_tinyNum ? 0 : this._rts; // _ts is the functional timeScale which would be 0 if the animation is paused.
 
-    this.totalTime(_clamp(-Math.abs(this._delay), this._tDur, tTime), suppressEvents !== false);
+    this.totalTime(_clamp(-Math.abs(this._delay), this.totalDuration(), tTime), suppressEvents !== false);
 
     _setEnd(this); // if parent.smoothChildTiming was false, the end time didn't get updated in the _alignPlayhead() method, so do it here.
 
@@ -3513,7 +3524,7 @@ var Animation = /*#__PURE__*/function () {
     var prevIsReverting = _reverting;
     _reverting = config;
 
-    if (this._initted || this._startAt) {
+    if (_isRevertWorthy(this)) {
       this.timeline && this.timeline.revert(config);
       this.totalTime(-0.01, config.suppressEvents);
     }
@@ -3913,7 +3924,7 @@ var Timeline = /*#__PURE__*/function (_Animation) {
         prevTime = 0; // upon init, the playhead should always go forward; someone could invalidate() a completed timeline and then if they restart(), that would make child tweens render in reverse order which could lock in the wrong starting values if they build on each other, like tl.to(obj, {x: 100}).to(obj, {x: 0}).
       }
 
-      if (!prevTime && time && !suppressEvents && !iteration) {
+      if (!prevTime && tTime && !suppressEvents && !prevIteration) {
         _callback(this, "onStart");
 
         if (this._tTime !== tTime) {
@@ -3960,7 +3971,7 @@ var Timeline = /*#__PURE__*/function (_Animation) {
               return this.render(totalTime, suppressEvents, force);
             }
 
-            child.render(child._ts > 0 ? (adjustedTime - child._start) * child._ts : (child._dirty ? child.totalDuration() : child._tDur) + (adjustedTime - child._start) * child._ts, suppressEvents, force || _reverting && (child._initted || child._startAt)); // if reverting, we should always force renders of initted tweens (but remember that .fromTo() or .from() may have a _startAt but not _initted yet). If, for example, a .fromTo() tween with a stagger (which creates an internal timeline) gets reverted BEFORE some of its child tweens render for the first time, it may not properly trigger them to revert.
+            child.render(child._ts > 0 ? (adjustedTime - child._start) * child._ts : (child._dirty ? child.totalDuration() : child._tDur) + (adjustedTime - child._start) * child._ts, suppressEvents, force || _reverting && _isRevertWorthy(child)); // if reverting, we should always force renders of initted tweens (but remember that .fromTo() or .from() may have a _startAt but not _initted yet). If, for example, a .fromTo() tween with a stagger (which creates an internal timeline) gets reverted BEFORE some of its child tweens render for the first time, it may not properly trigger them to revert.
 
             if (time !== this._time || !this._ts && !prevPaused) {
               //in case a tween pauses or seeks the timeline when rendering, like inside of an onUpdate/onComplete
@@ -5122,7 +5133,7 @@ var Tween = /*#__PURE__*/function (_Animation2) {
         this.ratio = ratio = 1 - ratio;
       }
 
-      if (time && !prevTime && !suppressEvents && !iteration) {
+      if (!prevTime && tTime && !suppressEvents && !prevIteration) {
         _callback(this, "onStart");
 
         if (this._tTime !== tTime) {
@@ -6078,6 +6089,7 @@ var _getPluginPropTween = function _getPluginPropTween(plugin, prop) {
     _buildModifierPlugin = function _buildModifierPlugin(name, modifier) {
   return {
     name: name,
+    headless: 1,
     rawVars: 1,
     //don't pre-process function-based values or "random()" strings.
     init: function init(target, vars, tween) {
@@ -6138,6 +6150,7 @@ var gsap = _gsap.registerPlugin({
   }
 }, {
   name: "endArray",
+  headless: 1,
   init: function init(target, value) {
     var i = value.length;
 
@@ -6147,7 +6160,7 @@ var gsap = _gsap.registerPlugin({
   }
 }, _buildModifierPlugin("roundProps", _roundModifier), _buildModifierPlugin("modifiers"), _buildModifierPlugin("snap", snap)) || _gsap; //to prevent the core plugins from being dropped via aggressive tree shaking, we must include them in the variable declaration in this way.
 
-Tween.version = Timeline.version = gsap.version = "3.12.7";
+Tween.version = Timeline.version = gsap.version = "3.13.0";
 _coreReady = 1;
 _windowExists() && _wake();
 var Power0 = _easeMap.Power0,
@@ -6181,6 +6194,7 @@ var Power0 = _easeMap.Power0,
   \************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Back: () => (/* reexport safe */ _gsap_core_js__WEBPACK_IMPORTED_MODULE_0__.Back),
@@ -6220,12 +6234,71 @@ TweenMaxWithCSS = gsapWithCSS.core.Tween;
 
 /***/ }),
 
+/***/ "./node_modules/split-text-js/SplitTextJS.js":
+/*!***************************************************!*\
+  !*** ./node_modules/split-text-js/SplitTextJS.js ***!
+  \***************************************************/
+/***/ ((module) => {
+
+/**
+ * Author: Alexandre Chabeau
+ * License: MIT
+ * Contact: alexandrechabeau.pro@gmail.com
+ * Original repos: https://github.com/saucyspray/split-text-js
+ */
+class SplitTextJS {
+    constructor(_target) {
+        this.result = new Object()
+        this.result.originalText = _target.innerText
+        this.result.splitted = this.split(_target)
+        this.result.words = this.result.splitted.querySelectorAll('.SplitTextJS-wrapper')
+        this.result.chars = this.result.splitted.querySelectorAll('.SplitTextJS-char')
+        this.result.spaces = this.result.splitted.querySelectorAll('.SplitTextJS-spacer')
+        return this.result
+    }
+    createSpan(_class) {
+        let span = document.createElement('span')
+        span.style.display = "inline-block"
+        span.className = _class
+        return span
+    }
+    split(_target) {
+        let containerArray = new Array
+        const splittedTarget = _target.innerText.split(' ')
+        let counter = splittedTarget.length
+        splittedTarget.map(word => {
+            const wrapper = this.createSpan('SplitTextJS-wrapper')
+            word.split(/(?!^)/).map(char => {
+                let el = this.createSpan('SplitTextJS-char')
+                el.innerText = char
+                wrapper.appendChild(el)
+            })
+            counter--
+            containerArray.push(wrapper)
+            if (counter > 0) {
+                let space = this.createSpan('SplitTextJS-char SplitTextJS-spacer')
+                space.innerHTML = '&nbsp;'
+                containerArray.push(space)
+            }
+        })
+        _target.innerHTML = ''
+        containerArray.forEach(child => {
+            _target.appendChild(child)
+        })
+        return _target
+    }
+}
+module.exports = SplitTextJS;
+
+/***/ }),
+
 /***/ "./src/scripts/animations/blur.js":
 /*!****************************************!*\
   !*** ./src/scripts/animations/blur.js ***!
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -6255,12 +6328,52 @@ function initBlurAnimation() {
   \***************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   boxTimelines: () => (/* binding */ boxTimelines),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
 
+var $firstBox = document.getElementById('first');
+var $secondBox = document.getElementById('second');
+var $thirdBox = document.getElementById('third');
+function firstAnimation() {
+  var firstTimeline = gsap__WEBPACK_IMPORTED_MODULE_0__["default"].timeline({
+    repeat: -1,
+    yoyo: true,
+    repeatDelay: 1,
+    defaults: {
+      ease: 'back'
+    }
+  });
+  firstTimeline.to($firstBox, {
+    x: 100
+  }).to($secondBox, {
+    x: 100
+  }, '<+.5').to($firstBox, {
+    y: 50
+  }).to($firstBox, {
+    opacity: 0
+  });
+  return firstTimeline;
+}
+function secondAnimation() {
+  var secondTimeline = gsap__WEBPACK_IMPORTED_MODULE_0__["default"].timeline();
+  secondTimeline.to('body', {
+    backgroundColor: 'pink'
+  }).to('h1', {
+    scale: .5
+  });
+  return secondTimeline;
+}
+function boxTimelines() {
+  var masterTimeline = gsap__WEBPACK_IMPORTED_MODULE_0__["default"].timeline({
+    delay: 1
+  });
+  masterTimeline.add(firstAnimation());
+}
 function initBoxAnimation() {
   var $altBoxes = gsap__WEBPACK_IMPORTED_MODULE_0__["default"].utils.toArray("[data-animation='box']");
   gsap__WEBPACK_IMPORTED_MODULE_0__["default"].to($altBoxes, {
@@ -6283,6 +6396,7 @@ function initBoxAnimation() {
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   initFadeAnimation: () => (/* binding */ initFadeAnimation)
@@ -6323,6 +6437,7 @@ function initFadeAnimation() {
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -6380,26 +6495,138 @@ function initFlipAnimation() {
 
 /***/ }),
 
+/***/ "./src/scripts/animations/loading.js":
+/*!*******************************************!*\
+  !*** ./src/scripts/animations/loading.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+/* harmony import */ var split_text_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! split-text-js */ "./node_modules/split-text-js/SplitTextJS.js");
+/* harmony import */ var split_text_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(split_text_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _spin__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./spin */ "./src/scripts/animations/spin.js");
+
+
+
+var $wrapper = document.querySelector("[data-animation='loader']");
+var $logo = $wrapper === null || $wrapper === void 0 ? void 0 : $wrapper.querySelector("[data-animation-child='logo']");
+var $bars = $wrapper === null || $wrapper === void 0 ? void 0 : $wrapper.querySelectorAll("[data-animation-child='bar']");
+function logoTimeline($el) {
+  var splitText = new (split_text_js__WEBPACK_IMPORTED_MODULE_0___default())($el);
+  var $letters = splitText.chars;
+  var tl = gsap__WEBPACK_IMPORTED_MODULE_2__["default"].timeline({
+    delay: 1
+  });
+  tl.fromTo($el, {
+    opacity: 0
+  }, {
+    opacity: 1
+  }).from($letters, {
+    y: 20,
+    stagger: {
+      amount: .25,
+      each: .25
+    },
+    duration: .25,
+    ease: 'cubicBezier(.71,-0.77,.43,1.67)'
+  }, '<+.1').to($letters, {
+    scale: 0,
+    stagger: {
+      from: 'center',
+      amount: .5
+    }
+  }, '>+.5');
+  return tl;
+}
+function barTimeline($bars) {
+  var tl = gsap__WEBPACK_IMPORTED_MODULE_2__["default"].timeline();
+  tl.to($bars, {
+    backgroundColor: '#BAA9A9',
+    duration: .8
+  }).to($logo, {
+    color: "#262625",
+    duration: .4
+  }, '<').to($bars, {
+    yPercent: 100,
+    ease: 'circ.inOut',
+    stagger: {
+      amount: .35,
+      each: .1
+    }
+  }).to($wrapper, {
+    display: 'none',
+    duration: 0
+  });
+  return tl;
+}
+function initLoader() {
+  if ($wrapper) {
+    gsap__WEBPACK_IMPORTED_MODULE_2__["default"].set($logo, {
+      opacity: 0
+    });
+    var masterTimeline = gsap__WEBPACK_IMPORTED_MODULE_2__["default"].timeline();
+    masterTimeline.add(logoTimeline($logo)).add(barTimeline($bars), '>-1').add((0,_spin__WEBPACK_IMPORTED_MODULE_1__["default"])('[data-animation="spin"]'), '>-1');
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initLoader);
+
+/***/ }),
+
+/***/ "./src/scripts/animations/spin.js":
+/*!****************************************!*\
+  !*** ./src/scripts/animations/spin.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+
+function spin($el) {
+  var spinAnimation = gsap__WEBPACK_IMPORTED_MODULE_0__["default"].to($el, {
+    rotate: '360deg',
+    duration: 2,
+    ease: 'elastic.inOut'
+  });
+  return spinAnimation;
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (spin);
+
+/***/ }),
+
 /***/ "./src/scripts/main.js":
 /*!*****************************!*\
   !*** ./src/scripts/main.js ***!
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _animations_blur__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animations/blur */ "./src/scripts/animations/blur.js");
 /* harmony import */ var _animations_box__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animations/box */ "./src/scripts/animations/box.js");
 /* harmony import */ var _animations_fade__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animations/fade */ "./src/scripts/animations/fade.js");
 /* harmony import */ var _animations_flip__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./animations/flip */ "./src/scripts/animations/flip.js");
+/* harmony import */ var _animations_loading__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./animations/loading */ "./src/scripts/animations/loading.js");
+
 
 
 
 
 document.addEventListener('DOMContentLoaded', function () {
+  (0,_animations_loading__WEBPACK_IMPORTED_MODULE_4__["default"])();
   (0,_animations_flip__WEBPACK_IMPORTED_MODULE_3__["default"])();
   (0,_animations_fade__WEBPACK_IMPORTED_MODULE_2__.initFadeAnimation)();
   (0,_animations_blur__WEBPACK_IMPORTED_MODULE_0__["default"])();
   (0,_animations_box__WEBPACK_IMPORTED_MODULE_1__["default"])();
+  (0,_animations_box__WEBPACK_IMPORTED_MODULE_1__.boxTimelines)();
 });
 
 // const $box = document.getElementById('box');
@@ -6465,6 +6692,7 @@ document.addEventListener('DOMContentLoaded', function () {
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 
@@ -6530,6 +6758,18 @@ __webpack_require__.r(__webpack_exports__);
 /******/ 				}
 /******/ 			}
 /******/ 			return result;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
 /******/ 		};
 /******/ 	})();
 /******/ 	

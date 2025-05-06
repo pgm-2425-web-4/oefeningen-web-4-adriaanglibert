@@ -7,6 +7,20 @@
         <link rel="stylesheet" href="build/main.css">
     </head>
     <body>
+        <div aria-hidden="true" class="loader" data-animation="loader">
+            <div class="logo loader__text">
+                <span class="logo__text" data-animation="split" data-animation-child="logo">
+                    Stable Studio
+                </span>
+            </div>
+
+            <div class="loader__bar" data-animation-child="bar"></div>
+            <div class="loader__bar" data-animation-child="bar"></div>
+            <div class="loader__bar" data-animation-child="bar"></div>
+            <div class="loader__bar" data-animation-child="bar"></div>
+            <div class="loader__bar" data-animation-child="bar"></div>
+        </div>
+
         <nav class="container nav">
             <a class="logo" href="/">
                 <svg class="logo__icon" width="24px" id="uuid-f23e0ce1-3173-455a-9c14-6a61bd64d91c" data-name="Layer 2"
@@ -54,8 +68,8 @@
             <header class="split header">
                 <div class="split__inner">
                     <h1 class="lead">
-                        We make silky <img class="lead__inner" width="70" aria-hidden="true" src="./assets/diamond.svg"
-                            alt=" " /><br>
+                        We make silky <img data-animation="spin" class="lead__inner" width="70" aria-hidden="true"
+                            src="./assets/diamond.svg" alt=" " /><br>
                         smooth websites
                     </h1>
 

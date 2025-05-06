@@ -10,6 +10,7 @@
   color: var(--background-color);
   transition: color 0.25s ease;
   font-weight: 600;
+  font-size: var(--font-medium);
 
   &::before,
   &::after {

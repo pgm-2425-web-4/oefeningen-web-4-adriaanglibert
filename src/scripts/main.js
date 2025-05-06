@@ -1,13 +1,17 @@
 import initBlurAnimation from "./animations/blur";
-import initBoxAnimation from "./animations/box";
+import initBoxAnimation, { boxTimelines } from "./animations/box";
 import { initFadeAnimation } from "./animations/fade";
 import initFlipAnimation from "./animations/flip";
+import initLoader from "./animations/loading";
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    initLoader();
     initFlipAnimation();
     initFadeAnimation();
     initBlurAnimation();
     initBoxAnimation();
+    boxTimelines();
 });
 
 
