@@ -10,9 +10,7 @@ function logoTimeline($el) {
     const splitText = new SplitTextJS($el);
     const $letters = splitText.chars;
 
-    const tl = gsap.timeline({
-        delay: 1
-    });
+    const tl = gsap.timeline();
 
     tl
         .fromTo($el, { opacity: 0 }, { opacity: 1 })
@@ -46,8 +44,7 @@ function barTimeline($bars) {
             yPercent: 100,
             ease: 'circ.inOut',
             stagger: {
-                amount: .35,
-                each: .1
+                amount: .15,
             }
         })
         .to($wrapper, {
@@ -62,12 +59,14 @@ function initLoader() {
     if ($wrapper) {
         gsap.set($logo, { opacity: 0 });
 
-        const masterTimeline = gsap.timeline();
+        const masterTimeline = gsap.timeline({
+            delay: .25
+        });
 
         masterTimeline
             .add(logoTimeline($logo))
-            .add(barTimeline($bars), '>-1')
-            .add(spin('[data-animation="spin"]'), '>-1');
+            .add(barTimeline($bars), '>-1.5')
+            .add(spin('[data-animation="spin"]'), '>-.5');
     }
 }
 

@@ -10,7 +10,14 @@
   @container split (min-width: 48rem) {
     & .split__inner {
       grid-template-columns: 2fr 1fr;
-      align-items: center;
+
+      &.split__inner--center {
+        align-items: center;
+      }
+
+      &.split__inner--half {
+        grid-template-columns: 1fr 1fr;
+      }
     }
   }
 }

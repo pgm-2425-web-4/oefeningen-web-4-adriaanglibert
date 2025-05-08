@@ -1,0 +1,25 @@
+.slide {
+  height: 100svh;
+
+  & .slide__panel {
+    background-color: black;
+    color: white;
+
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &.slide__panel--bright {
+      background-color: antiquewhite;
+      color: darkslategrey;
+    }
+
+    &.slide__panel--medium {
+      background-color: rgb(0, 17, 83);
+      color: rgb(226, 226, 226);
+    }
+  }
+}
