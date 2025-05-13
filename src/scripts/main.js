@@ -7,6 +7,7 @@ import initLoader from "./animations/loading";
 import initPin from "./animations/pin";
 import initScrollAnimations from "./animations/scroll";
 import initSlide from "./animations/slide";
+import initMouse from "./animations/mouse";
 
 export const GAP_LG_PX = parseInt(getComputedStyle(document.body).getPropertyValue('--spacing-lg').replace('rem', '') * 16);
 
@@ -28,4 +29,5 @@ document.addEventListener('DOMContentLoaded', () => {
     boxTimelines();
     initSlide(); // Volgorde van belang! Hier wordt iets bijgerekend!
     initScrollAnimations();
+    initMouse();
 });

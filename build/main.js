@@ -9944,10 +9944,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
 /* harmony import */ var split_text_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! split-text-js */ "./node_modules/split-text-js/SplitTextJS.js");
 /* harmony import */ var split_text_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(split_text_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _spin__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./spin */ "./src/scripts/animations/spin.js");
+/* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mouse */ "./src/scripts/animations/mouse.js");
+
 
 
 
@@ -9957,7 +9959,7 @@ var $bars = $wrapper === null || $wrapper === void 0 ? void 0 : $wrapper.querySe
 function logoTimeline($el) {
   var splitText = new (split_text_js__WEBPACK_IMPORTED_MODULE_0___default())($el);
   var $letters = splitText.chars;
-  var tl = gsap__WEBPACK_IMPORTED_MODULE_2__["default"].timeline();
+  var tl = gsap__WEBPACK_IMPORTED_MODULE_3__["default"].timeline();
   tl.fromTo($el, {
     opacity: 0
   }, {
@@ -9980,7 +9982,7 @@ function logoTimeline($el) {
   return tl;
 }
 function barTimeline($bars) {
-  var tl = gsap__WEBPACK_IMPORTED_MODULE_2__["default"].timeline();
+  var tl = gsap__WEBPACK_IMPORTED_MODULE_3__["default"].timeline();
   tl.to($bars, {
     backgroundColor: '#BAA9A9',
     duration: .8
@@ -10001,16 +10003,57 @@ function barTimeline($bars) {
 }
 function initLoader() {
   if ($wrapper) {
-    gsap__WEBPACK_IMPORTED_MODULE_2__["default"].set($logo, {
+    gsap__WEBPACK_IMPORTED_MODULE_3__["default"].set($logo, {
       opacity: 0
     });
-    var masterTimeline = gsap__WEBPACK_IMPORTED_MODULE_2__["default"].timeline({
+    var masterTimeline = gsap__WEBPACK_IMPORTED_MODULE_3__["default"].timeline({
       delay: .25
     });
-    masterTimeline.add(logoTimeline($logo)).add(barTimeline($bars), '>-1.5').add((0,_spin__WEBPACK_IMPORTED_MODULE_1__["default"])('[data-animation="spin"]'), '>-.5');
+    masterTimeline.add(logoTimeline($logo)).add(barTimeline($bars), '>-1.5').add((0,_spin__WEBPACK_IMPORTED_MODULE_1__["default"])('[data-animation="spin"]'), '>-.5').add(_mouse__WEBPACK_IMPORTED_MODULE_2__.mouseEnterAnimation, '<+.25');
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initLoader);
+
+/***/ }),
+
+/***/ "./src/scripts/animations/mouse.js":
+/*!*****************************************!*\
+  !*** ./src/scripts/animations/mouse.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   mouseEnterAnimation: () => (/* binding */ mouseEnterAnimation)
+/* harmony export */ });
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+/* harmony import */ var _helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../helpers */ "./src/scripts/helpers.js");
+
+
+var $mouseContainer = document.querySelector("[data-animation='mouse']");
+var $mouseBall = $mouseContainer.querySelector("[data-animation-child='ball']");
+var mouseEnterAnimation = gsap__WEBPACK_IMPORTED_MODULE_1__["default"].from($mouseBall, {
+  opacity: 0,
+  scale: 0,
+  duration: 1.25,
+  ease: 'elastic.inOut'
+});
+function initMouse() {
+  var mm = gsap__WEBPACK_IMPORTED_MODULE_1__["default"].matchMedia();
+  mm.add("(pointer: fine)", function () {
+    var quickToX = gsap__WEBPACK_IMPORTED_MODULE_1__["default"].quickTo($mouseContainer, "x");
+    var quickToY = gsap__WEBPACK_IMPORTED_MODULE_1__["default"].quickTo($mouseContainer, "y");
+    document.addEventListener('mousemove', (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.debounce)(function (event) {
+      var clientX = event.clientX,
+        clientY = event.clientY;
+      quickToX(clientX);
+      quickToY(clientY);
+    }, 1));
+  });
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initMouse);
 
 /***/ }),
 
@@ -10207,6 +10250,34 @@ function spin($el) {
 
 /***/ }),
 
+/***/ "./src/scripts/helpers.js":
+/*!********************************!*\
+  !*** ./src/scripts/helpers.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   debounce: () => (/* binding */ debounce)
+/* harmony export */ });
+function debounce(func) {
+  var _this = this;
+  var timeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 300;
+  var timer;
+  return function () {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      func.apply(_this, args);
+    }, timeout);
+  };
+}
+
+/***/ }),
+
 /***/ "./src/scripts/main.js":
 /*!*****************************!*\
   !*** ./src/scripts/main.js ***!
@@ -10218,7 +10289,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   GAP_LG_PX: () => (/* binding */ GAP_LG_PX)
 /* harmony export */ });
-/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
 /* harmony import */ var _animations_blur__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animations/blur */ "./src/scripts/animations/blur.js");
 /* harmony import */ var _animations_box__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animations/box */ "./src/scripts/animations/box.js");
 /* harmony import */ var _animations_fade__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animations/fade */ "./src/scripts/animations/fade.js");
@@ -10227,6 +10298,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _animations_pin__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./animations/pin */ "./src/scripts/animations/pin.js");
 /* harmony import */ var _animations_scroll__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./animations/scroll */ "./src/scripts/animations/scroll.js");
 /* harmony import */ var _animations_slide__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./animations/slide */ "./src/scripts/animations/slide.js");
+/* harmony import */ var _animations_mouse__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./animations/mouse */ "./src/scripts/animations/mouse.js");
+
 
 
 
@@ -10241,7 +10314,7 @@ var DEV_MODE = true;
 document.addEventListener('DOMContentLoaded', function () {
   /* Temp check, remove this when deploying. */
   if (DEV_MODE) {
-    gsap__WEBPACK_IMPORTED_MODULE_8__["default"].set('.loader', {
+    gsap__WEBPACK_IMPORTED_MODULE_9__["default"].set('.loader', {
       display: 'none'
     });
   } else {
@@ -10255,6 +10328,7 @@ document.addEventListener('DOMContentLoaded', function () {
   (0,_animations_box__WEBPACK_IMPORTED_MODULE_1__.boxTimelines)();
   (0,_animations_slide__WEBPACK_IMPORTED_MODULE_7__["default"])(); // Volgorde van belang! Hier wordt iets bijgerekend!
   (0,_animations_scroll__WEBPACK_IMPORTED_MODULE_6__["default"])();
+  (0,_animations_mouse__WEBPACK_IMPORTED_MODULE_8__["default"])();
 });
 
 /***/ }),

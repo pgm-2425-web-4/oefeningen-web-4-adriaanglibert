@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import SplitTextJS from 'split-text-js';
 import spin from "./spin";
+import { mouseEnterAnimation } from "./mouse";
 
 const $wrapper = document.querySelector("[data-animation='loader']");
 const $logo = $wrapper?.querySelector("[data-animation-child='logo']");
@@ -66,7 +67,8 @@ function initLoader() {
         masterTimeline
             .add(logoTimeline($logo))
             .add(barTimeline($bars), '>-1.5')
-            .add(spin('[data-animation="spin"]'), '>-.5');
+            .add(spin('[data-animation="spin"]'), '>-.5')
+            .add(mouseEnterAnimation, '<+.25');
     }
 }
 

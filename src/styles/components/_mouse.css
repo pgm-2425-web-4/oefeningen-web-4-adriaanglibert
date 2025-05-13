@@ -1,0 +1,18 @@
+.mouse-container {
+  position: fixed;
+  z-index: 2147483647;
+
+  & .mouse-container__ball {
+    position: relative;
+    left: calc((var(--spacing-lg) / 2) * -1);
+    top: calc((var(--spacing-lg) / 2) * -1);
+    width: var(--spacing-lg);
+    aspect-ratio: 1;
+    background-color: var(--accent-color);
+    border-radius: var(--spacing-lg);
+  }
+
+  @media screen and (pointer: coarse) {
+    display: none;
+  }
+}
