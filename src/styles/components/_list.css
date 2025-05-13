@@ -1,0 +1,16 @@
+.list {
+  list-style: upper-roman;
+  list-style-position: inside;
+  color: var(--foreground-color);
+
+  & .list__item {
+    padding: var(--spacing-sm) 0;
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--muted-color);
+    }
+
+    &::marker {
+      margin-right: 1rem;
+    }
+  }
+}

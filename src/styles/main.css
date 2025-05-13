@@ -8,12 +8,16 @@
 @import url("./components/_box.css");
 @import url("./components/_marquee.css");
 @import url("./components/_link.css");
+@import url("./components/_list.css");
+@import url("./layout/_hero.css");
 @import url("./layout/_header.css");
 @import url("./layout/_loader.css");
 @import url("./layout/_nav.css");
 @import url("./layout/_section.css");
 @import url("./layout/_split.css");
 @import url("./layout/_wysiwyg.css");
+@import url("./layout/_sticky-list.css");
+@import url("./layout/_slide.css");
 
 body {
   background-color: var(--background-color);

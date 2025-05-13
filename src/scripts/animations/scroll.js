@@ -20,21 +20,21 @@ function scrollAnimation($el) {
 
 function overflowScroll() {
     const overflowEl = document.querySelector("#overflow-element");
-
     const triggerEl = document.querySelector("#parent-overflow")
-    console.log(overflowEl.scrollWidth, window.offsetWidth);
 
-    gsap.to(overflowEl, {
-        x: -(overflowEl.scrollWidth - window.innerWidth),
-        scrollTrigger: {
-            trigger: triggerEl,
-            start: '0 50%',
-            end: () => `+=${overflowEl.scrollWidth}`,
-            scrub: true,
-            pin: true,
-            markers: true
-        }
-    });
+    if (overflowEl) {
+        gsap.to(overflowEl, {
+            x: -(overflowEl.scrollWidth - window.innerWidth),
+            scrollTrigger: {
+                trigger: triggerEl,
+                start: '0 50%',
+                end: () => `+=${overflowEl.scrollWidth}`,
+                scrub: true,
+                pin: true,
+                markers: true
+            }
+        });
+    }
 }
 
 function initScrollAnimations() {
@@ -44,7 +44,9 @@ function initScrollAnimations() {
         scrollAnimation($scrollElement);
     });
 
-    overflowScroll();
+    if ($scrollElements) {
+        overflowScroll();
+    }
 }
 
 

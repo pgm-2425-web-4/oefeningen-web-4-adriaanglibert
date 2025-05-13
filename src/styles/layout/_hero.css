@@ -1,0 +1,6 @@
+.hero {
+  & .hero__image {
+    overflow: hidden;
+    border-radius: var(--spacing-base);
+  }
+}

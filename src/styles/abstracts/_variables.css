@@ -2,7 +2,9 @@
   --black: #262625;
   --white: #f4f4f2;
   --gray: #a1a1a1;
+  --dark-gray: #525252;
   --green: #709190;
+  --blue: #7a95a4;
   --brown: #baa9a9;
 
   --2xs: 0.1rem;
@@ -18,8 +20,10 @@
 
   --background-color: var(--white);
   --foreground-color: var(--black);
+  --middle-color: var(--dark-gray);
   --muted-color: var(--gray);
   --accent-color: var(--green);
+  --focus-color: var(--blue);
 
   --font-sans: "PP Mori";
 
@@ -37,6 +41,7 @@
   --font-small: var(--sm);
   --font-base: var(--n);
   --font-medium: 14px;
-  --font-lg: var(--lg);
+  --font-lg: var(--base);
+  --font-xl: var(--lg);
   --font-lead: var(--2xl);
 }

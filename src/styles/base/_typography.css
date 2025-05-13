@@ -3,8 +3,29 @@ body {
   font-size: var(--font-base);
 }
 
-h1 {
+h1,
+.title {
   font-size: var(--font-lead);
   line-height: 100%;
   font-weight: 600;
+}
+
+.title {
+  font-size: var(--font-xl);
+}
+
+h2,
+.fancy {
+  text-transform: uppercase;
+  font-size: var(--font-base);
+  font-weight: 100;
+
+  &::before,
+  &::after {
+    content: " / ";
+  }
+}
+
+h3 {
+  text-transform: uppercase;
 }

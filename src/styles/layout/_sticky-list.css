@@ -1,0 +1,17 @@
+.sticky-list {
+  padding-block: var(--spacing-lg);
+
+  & .sticky-list__item {
+    padding-block: var(--spacing-lg);
+    border-top: 1px solid var(--muted-color);
+    background-color: var(--background-color);
+  }
+
+  & > .sticky-list__item {
+    border: none;
+  }
+
+  @media screen and (min-width: 48rem) {
+    padding-block: var(--spacing-xl);
+  }
+}

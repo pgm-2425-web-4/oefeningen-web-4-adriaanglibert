@@ -1,17 +1,32 @@
 .wysiwyg {
   display: flex;
   flex-direction: column;
+  font-size: var(--font-lg);
+  line-height: 1.65;
+  font-weight: 600;
   gap: var(--spacing-lg);
+  color: var(--middle-color);
+
+  &.wysiwyg--small {
+    font-size: var(--font-base);
+  }
 
   &.wysiwyg--upper {
     text-transform: uppercase;
-  }
-
-  &.wysiwyg--medium {
-    font-weight: 600;
+    font-size: var(--font-medium);
+    line-height: 1.75;
+    color: var(--foreground-color);
   }
 
   & .wysiwyg__muted {
     color: var(--muted-color);
+  }
+
+  & .wysiwyg__accent {
+    color: var(--accent-color);
+  }
+
+  & .wysiwyg__focus {
+    color: var(--focus-color);
   }
 }
