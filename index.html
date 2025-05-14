@@ -256,7 +256,189 @@
             </article>
         </section>
 
-        <section class="section"></section>
+        <section class="container container--spacing split">
+            <header class="split__inner split__inner--half">
+                <div class="split__inner split__inner--third">
+                    <h2>Process</h2>
+
+                    <strong class="title">
+                        Our website development
+                        process <img class="title__image" width="100" src="./assets/move-lines.svg" />
+                    </strong>
+                </div>
+
+                <div class="wysiwyg wysiwyg--medium">
+                    <p>We are transparent about our development process and we communicate clearly the requirements,
+                        expectations and outcomes. We keep you up to date with the progress and ensure that you are
+                        satisfied with the final product.</p>
+                </div>
+            </header>
+
+            <div class="tabs" role="tablist" data-animation="tab-container">
+                <div class="tabs__header">
+                    <div class="tabs__titles" data-animation-child="titles">
+                        <h3>Requirement collection</h3>
+                        <h3>Prototyping</h3>
+                        <h3>Optimization and Deployment</h3>
+                        <h3>Ad Campaign and Profile Building</h3>
+                    </div>
+
+                    <div class="tabs__navigation" data-animation-child="progress-bar">
+                        <div class="tabs__progress">
+                            <progress class="tabs__progress-bar" min="0" value="0" max="100">
+                            </progress>
+
+                            <div></div>
+
+                            <img class="tabs__progress-icon" src="./assets/diamond.svg" />
+                        </div>
+
+                        <div class="tabs__bottom">
+                            <nav id="process" class="tabs__buttons" data-animation-child="button-container">
+                                <button role="tab" aria-controls="panel-01" id="button-01"><span
+                                        data-animation-child='step'>Step</span> <span class="fancy">01</span></button>
+                                <button role="tab" aria-controls="panel-02" id="button-02"><span
+                                        data-animation-child='step'>Step</span> <span class="fancy">02</span></button>
+                                <button role="tab" aria-controls="panel-03" id="button-03"><span
+                                        data-animation-child='step'>Step</span> <span class="fancy">03</span></button>
+                                <button role="tab" aria-controls="panel-04" id="button-04"><span
+                                        data-animation-child='step'>Step</span> <span class="fancy">04</span></button>
+                            </nav>
+
+                            <label for="process">
+                                Progress <output data-animation-child="progress-percentage">0</output>%
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabs__panels">
+                    <div class="tabs__content" data-animation-child="panels">
+                        <article role="tabpanel" id="panel-01" aria-labelledby="button-01">
+                            <div>
+                                <header class="wysiwyg">
+                                    The initial phase usually consist of choosing a design, then deciding the
+                                    appearance,
+                                    content,
+                                    visual effects and additional features of the website and we will give you a budget
+                                    proposal.
+                                </header>
+
+                                <ul class="list list--bullet">
+                                    <li>
+                                        Choosing a design/template: we do not design from scratch. We use existing
+                                        website and
+                                        design layout as reference and recreate a new system that matches your business
+                                        image.
+                                    </li>
+
+                                    <li>
+                                        Additional features: we advice you on the additional features you can add to
+                                        your
+                                        website.
+                                        This could be animations, transitions, additional sections, etc.
+                                    </li>
+
+                                    <li>
+                                        Budget proposal & Contract: we give you an estimated budget and project
+                                        duration. This
+                                        is
+                                        based on the number of pages and animations you want to add to your website.
+                                    </li>
+                                </ul>
+                            </div>
+                        </article>
+
+                        <article role="tabpanel" id="panel-02" aria-labelledby="button-02">
+                            <header class="wysiwyg">
+                                The second phase is where we go to work and create a prototype of your website. We will
+                                need
+                                follow up information and data so we can populate the website.
+                            </header>
+
+                            <ul class="list list--bullet">
+                                <li>
+                                    Tech Stack: we have a strong preference of custom coding everything from scratch. We
+                                    mainly use Astro for static/low-dynamic sites and Next JS for dynamic/SSR/ISR sites.
+                                    Styling are done mostly with Tailwind and headless UI for responsiveness and
+                                    accessibility. We use GSAP/Anime.js and Lottie Web for animations.
+                                </li>
+
+                                <li>
+                                    Follow-up Requests: we will ask you for additional information such as images,
+                                    headlines, copywriting, product and service details in order to populate the
+                                    website. We
+                                    can help you with copywriting to achieve better on-site SEO but it will take time.
+                                </li>
+                            </ul>
+                        </article>
+
+                        <article role="tabpanel" id="panel-03" aria-labelledby="button-03">
+                            <header class="wysiwyg">
+                                In third phase, we will optimize the website for speed and SEO. We clean up the code and
+                                make sure the website is accessible and mobile friendly. Then we deploy.
+                            </header>
+
+                            <ul class="list list--bullet">
+                                <li>
+                                    Optimization: we will look into the meta tags, image sizes, caching, prefetching,
+                                    elements' attributes, etc. and optimize them. We take it a step further and use
+                                    analytic
+                                    tools to ensure the search engines are happy with the website. On-page optimization
+                                    is
+                                    also done at this point.
+                                </li>
+
+                                <li>
+                                    Deployment: we deploy the website to mainly Vercel, Netlify, Cloudflare Pages or
+                                    Fly.io.
+                                    We can also deploy to your own server if you have one. For domain names, we can help
+                                    you
+                                    purchase and manage custom domains with an extra fee payed yearly.
+                                </li>
+                            </ul>
+                        </article>
+
+                        <article role="tabpanel" id="panel-04" aria-labelledby="button-04">
+                            <header class="wysiwyg">
+                                After deploying, we will track the website's performance and exposure if analytics is
+                                required. We will also selectively run ad campaigns and build your online presence.
+                            </header>
+
+                            <ul class="list list--bullet">
+                                <li>
+                                    Different businesses needs different way to gain exposure. Running ads is only part
+                                    of the trick. We help you build your online presence by reaching out to influencers,
+                                    getting reviews, and building a strong google business profile, something that even
+                                    top SEO agencies miss out.
+                                </li>
+
+                                <li>
+                                    In contrast with On-page optimization, Off-page optimization is like a slow grind
+                                    and requires dedication and creativity to achieve the optimal results.
+                                </li>
+                            </ul>
+                        </article>
+                    </div>
+
+                    <div>
+                        <figure class="tabs__figure" data-animation-child="images">
+                            <img width="400" class="tabs__image" src="./assets/panels/process-design.svg"
+                                alt="Design" />
+                            <img width="400" class="tabs__image" src="./assets/panels/process-prototype.svg"
+                                alt="Prototype" />
+                            <img width="400" class="tabs__image" src="./assets/panels/process-optimize.svg"
+                                alt="Optimization and deployment" />
+                            <img width="400" class="tabs__image" src="./assets/panels/process-promote.svg"
+                                alt="Ad Campaign and Profile Building" />
+                        </figure>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class=" section">
+        </section>
         <section class="section"></section>
 
         <script src="build/main.js"></script>

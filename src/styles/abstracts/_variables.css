@@ -6,6 +6,7 @@
   --green: #709190;
   --blue: #7a95a4;
   --brown: #baa9a9;
+  --whitish: #e9e8e4;
 
   --2xs: 0.1rem;
   --xs: 0.5rem;
@@ -21,6 +22,7 @@
   --background-color: var(--white);
   --foreground-color: var(--black);
   --middle-color: var(--dark-gray);
+  --subtle-color: var(--whitish);
   --muted-color: var(--gray);
   --accent-color: var(--green);
   --focus-color: var(--blue);

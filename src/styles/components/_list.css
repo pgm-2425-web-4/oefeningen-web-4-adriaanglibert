@@ -13,4 +13,14 @@
       margin-right: 1rem;
     }
   }
+
+  &.list--bullet {
+    list-style: circle;
+    list-style-position: outside;
+    padding-left: var(--spacing-base);
+
+    & li:not(:last-child) {
+      margin-bottom: var(--spacing-sm);
+    }
+  }
 }

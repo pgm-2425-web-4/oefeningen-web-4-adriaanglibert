@@ -18,6 +18,10 @@
       &.split__inner--half {
         grid-template-columns: 1fr 1fr;
       }
+
+      &.split__inner--third {
+        grid-template-columns: 1fr 3fr;
+      }
     }
   }
 }

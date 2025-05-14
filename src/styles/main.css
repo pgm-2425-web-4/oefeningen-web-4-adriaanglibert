@@ -16,6 +16,7 @@
 @import url("./layout/_nav.css");
 @import url("./layout/_section.css");
 @import url("./layout/_split.css");
+@import url("./layout/_tabs.css");
 @import url("./layout/_wysiwyg.css");
 @import url("./layout/_sticky-list.css");
 @import url("./layout/_slide.css");
@@ -38,6 +39,10 @@ ul {
   max-width: var(--container-width);
   margin-inline: auto;
   padding-inline: var(--spacing-base);
+
+  &.container--spacing {
+    padding-block: var(--spacing-xl);
+  }
 
   @media screen and (min-width: 768px) {
     padding-inline: var(--spacing-lg);

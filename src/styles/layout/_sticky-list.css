@@ -7,6 +7,12 @@
     background-color: var(--background-color);
   }
 
+  & > div:last-child {
+    & article {
+      border-bottom: 1px solid var(--muted-color);
+    }
+  }
+
   & > .sticky-list__item {
     border: none;
   }

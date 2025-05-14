@@ -1,0 +1,147 @@
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-base);
+  padding-top: var(--spacing-xl);
+
+  container-type: inline-size;
+  container-name: tabs;
+
+  & .tabs__header {
+    display: grid;
+    padding: var(--spacing-base) 0;
+    gap: var(--spacing-base);
+
+    & .tabs__titles {
+      display: grid;
+
+      & h3 {
+        grid-row: 1 / 1;
+        grid-column: 1 / 1;
+
+        &:not(:first-child) {
+          visibility: hidden;
+        }
+      }
+    }
+
+    @container tabs (min-width: 38rem) {
+      grid-template-columns: 1fr 2fr;
+    }
+  }
+
+  & .tabs__navigation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  & .tabs__progress {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+
+    progress {
+      &::-webkit-progress-bar {
+        border-radius: var(--spacing-base);
+        background-color: var(--subtle-color);
+      }
+
+      &::-webkit-progress-value {
+        border-radius: var(--spacing-base);
+        background-color: var(--foreground-color);
+      }
+
+      &::-moz-progress-bar {
+        border-radius: var(--spacing-base);
+        background-color: var(--foreground-color);
+      }
+    }
+
+    & .tabs__progress-bar {
+      border-radius: var(--spacing-base);
+      margin: 0;
+      width: 100%;
+      height: var(--spacing-base);
+      background-color: var(--subtle-color);
+    }
+
+    & .tabs__progress-icon {
+      width: var(--spacing-base);
+      position: absolute;
+      top: 0;
+    }
+  }
+
+  & .tabs__bottom {
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  & .tabs__buttons {
+    display: flex;
+
+    & button {
+      background-color: transparent;
+      padding: var(--spacing-sm);
+      gap: var(--spacing-mini);
+      font: inherit;
+      text-transform: uppercase;
+      border: none;
+      & span {
+        display: inline-block;
+        overflow: hidden;
+      }
+      & * {
+        pointer-events: none;
+      }
+    }
+  }
+
+  & .tabs__panels {
+    position: relative;
+    background-color: var(--subtle-color);
+    border-radius: var(--spacing-base);
+    overflow: hidden;
+    display: grid;
+
+    @container tabs (min-width: 38rem) {
+      grid-template-columns: 2fr 1fr;
+    }
+
+    & .tabs__content {
+      padding: var(--spacing-lg);
+      display: grid;
+
+      & header {
+        margin-bottom: var(--spacing-base);
+      }
+
+      & > article {
+        grid-row: 1 / 1;
+        grid-column: 1 / 1;
+
+        &:not(:first-child) {
+          visibility: hidden;
+        }
+      }
+    }
+
+    & .tabs__figure {
+      display: grid;
+      height: 100%;
+
+      & img {
+        grid-row: 1 / 1;
+        grid-column: 1 / 1;
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+
+        border-radius: var(--spacing-base);
+      }
+    }
+  }
+}

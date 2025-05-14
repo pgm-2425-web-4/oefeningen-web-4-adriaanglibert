@@ -12,6 +12,11 @@ h1,
 
 .title {
   font-size: var(--font-xl);
+
+  & .title__image {
+    display: inline-block;
+    padding-block: var(--spacing-sm);
+  }
 }
 
 h2,

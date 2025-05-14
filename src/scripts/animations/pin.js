@@ -8,7 +8,7 @@ function pinAnimation($container) {
     const $pinChildren = $container.querySelectorAll('[data-animation-child="pin"]');
     const BAR_HEIGHT = (GAP_LG_PX * 3);
 
-    let completeHeight = (($pinChildren.length - 1) * BAR_HEIGHT) + $pinChildren[$pinChildren.length - 1].offsetHeight;
+    let completeHeight = (($pinChildren.length - 1) * BAR_HEIGHT) + $pinChildren[$pinChildren.length - 1].offsetHeight + BAR_HEIGHT / 2;
 
     $pinChildren.forEach(($pinChild, index) => {
         const start = index * BAR_HEIGHT;
@@ -21,6 +21,8 @@ function pinAnimation($container) {
             paused: true
         })
 
+        const isLastChild = index === $pinChildren.length - 1;
+
         ScrollTrigger.create({
             trigger: $pinChild,
             start: `top ${start}`,
@@ -30,7 +32,7 @@ function pinAnimation($container) {
             pinSpacing: false,
             invalidateOnRefresh: true,
             scrub: true,
-            animation: index !== $pinChildren.length - 1 ? fadeOutChildren : null
+            animation: isLastChild ? null : fadeOutChildren
         });
     });
 
