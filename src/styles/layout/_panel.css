@@ -1,0 +1,21 @@
+
+.panels {
+  display: flex;
+  overflow: hidden;
+  width: min-content;
+  min-height: 100vh;
+  min-height: 100svh;
+
+  & .panels__panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex-shrink: 0;
+
+    width: 80vw;
+    width: 80svw;
+
+    border: 2px solid red;
+  }
+}

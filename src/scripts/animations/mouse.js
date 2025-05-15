@@ -2,7 +2,8 @@ import gsap from "gsap";
 import { debounce } from "../helpers";
 
 const $mouseContainer = document.querySelector("[data-animation='mouse']");
-const $mouseBall = $mouseContainer.querySelector("[data-animation-child='ball']");
+
+const $mouseBall = $mouseContainer?.querySelector("[data-animation-child='ball']");
 
 export const mouseEnterAnimation = gsap.from($mouseBall, {
     opacity: 0,

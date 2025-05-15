@@ -14,12 +14,17 @@
 @import url("./layout/_header.css");
 @import url("./layout/_loader.css");
 @import url("./layout/_nav.css");
+@import url("./layout/_panel.css");
 @import url("./layout/_section.css");
 @import url("./layout/_split.css");
 @import url("./layout/_tabs.css");
 @import url("./layout/_wysiwyg.css");
 @import url("./layout/_sticky-list.css");
 @import url("./layout/_slide.css");
+
+html, body {
+  overflow-x: hidden;
+}
 
 body {
   background-color: var(--background-color);
