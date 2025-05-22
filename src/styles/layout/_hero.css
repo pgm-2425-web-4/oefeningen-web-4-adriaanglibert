@@ -3,4 +3,10 @@
     overflow: hidden;
     border-radius: var(--spacing-base);
   }
+
+  & .hero__canvas {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    background-color: var(--subtle-color);
+  }
 }

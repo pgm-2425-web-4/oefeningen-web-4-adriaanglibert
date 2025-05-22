@@ -436,6 +436,12 @@ h3 {
     overflow: hidden;
     border-radius: var(--spacing-base);
   }
+
+  & .hero__canvas {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    background-color: var(--subtle-color);
+  }
 }
 
 .header {
@@ -471,6 +477,29 @@ h3 {
 
   @media screen and (min-width: 768px) {
     padding-block: var(--spacing-lg);
+  }
+}
+
+
+.panels {
+  display: flex;
+  overflow: hidden;
+  width: -moz-min-content;
+  width: min-content;
+  min-height: 100vh;
+  min-height: 100svh;
+
+  & .panels__panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex-shrink: 0;
+
+    width: 80vw;
+    width: 80svw;
+
+    border: 2px solid red;
   }
 }
 
@@ -738,6 +767,10 @@ h3 {
       color: rgb(226, 226, 226);
     }
   }
+}
+
+html, body {
+  overflow-x: hidden;
 }
 
 body {
