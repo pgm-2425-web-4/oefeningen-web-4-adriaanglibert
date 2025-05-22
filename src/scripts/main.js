@@ -11,8 +11,19 @@ import initMouse from "./animations/mouse";
 import initTabs from "./animations/tabs";
 import loadLottieFiles from "./lottie";
 import loadRiveFiles from "./rive";
+import initDomChanges from "./animations/dom";
+import initTextAnimation from "./animations/title";
 
 export const GAP_LG_PX = parseInt(getComputedStyle(document.body).getPropertyValue('--spacing-lg').replace('rem', '') * 16);
+
+import { ScrollSmoother } from "gsap/ScrollSmoother";
+
+gsap.registerPlugin(ScrollSmoother)
+
+ScrollSmoother.create({
+    smooth: 2,
+    effects: true,
+});
 
 const DEV_MODE = true;
 
@@ -37,4 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadLottieFiles();
     loadRiveFiles();
+
+    initDomChanges();
+    initTextAnimation();
 });

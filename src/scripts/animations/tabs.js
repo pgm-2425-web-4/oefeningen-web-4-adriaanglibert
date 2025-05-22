@@ -30,7 +30,7 @@ function updateTitle($titleContainer, buttonAndTabIndex) {
         .fromTo($newActiveTitle, {
             y: 5,
             opacity: 0,
-            autoAlpha: 1
+            autoAlpha: 0
         }, {
             y: 0,
             opacity: 1,

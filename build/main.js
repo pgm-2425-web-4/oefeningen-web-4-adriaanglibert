@@ -9062,6 +9062,1542 @@ _gsap_core_js__WEBPACK_IMPORTED_MODULE_0__.gsap.registerPlugin(CSSPlugin);
 
 /***/ }),
 
+/***/ "./node_modules/gsap/Flip.js":
+/*!***********************************!*\
+  !*** ./node_modules/gsap/Flip.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Flip: () => (/* binding */ Flip),
+/* harmony export */   "default": () => (/* binding */ Flip)
+/* harmony export */ });
+/* harmony import */ var _utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/matrix.js */ "./node_modules/gsap/utils/matrix.js");
+/*!
+ * Flip 3.13.0
+ * https://gsap.com
+ *
+ * @license Copyright 2008-2025, GreenSock. All rights reserved.
+ * Subject to the terms at https://gsap.com/standard-license
+ * @author: Jack Doyle, jack@greensock.com
+*/
+
+/* eslint-disable */
+
+
+var _id = 1,
+    _toArray,
+    gsap,
+    _batch,
+    _batchAction,
+    _body,
+    _closestTenth,
+    _getStyleSaver,
+    _forEachBatch = function _forEachBatch(batch, name) {
+  return batch.actions.forEach(function (a) {
+    return a.vars[name] && a.vars[name](a);
+  });
+},
+    _batchLookup = {},
+    _RAD2DEG = 180 / Math.PI,
+    _DEG2RAD = Math.PI / 180,
+    _emptyObj = {},
+    _dashedNameLookup = {},
+    _memoizedRemoveProps = {},
+    _listToArray = function _listToArray(list) {
+  return typeof list === "string" ? list.split(" ").join("").split(",") : list;
+},
+    // removes extra spaces contaminating the names, returns an Array.
+_callbacks = _listToArray("onStart,onUpdate,onComplete,onReverseComplete,onInterrupt"),
+    _removeProps = _listToArray("transform,transformOrigin,width,height,position,top,left,opacity,zIndex,maxWidth,maxHeight,minWidth,minHeight"),
+    _getEl = function _getEl(target) {
+  return _toArray(target)[0] || console.warn("Element not found:", target);
+},
+    _round = function _round(value) {
+  return Math.round(value * 10000) / 10000 || 0;
+},
+    _toggleClass = function _toggleClass(targets, className, action) {
+  return targets.forEach(function (el) {
+    return el.classList[action](className);
+  });
+},
+    _reserved = {
+  zIndex: 1,
+  kill: 1,
+  simple: 1,
+  spin: 1,
+  clearProps: 1,
+  targets: 1,
+  toggleClass: 1,
+  onComplete: 1,
+  onUpdate: 1,
+  onInterrupt: 1,
+  onStart: 1,
+  delay: 1,
+  repeat: 1,
+  repeatDelay: 1,
+  yoyo: 1,
+  scale: 1,
+  fade: 1,
+  absolute: 1,
+  props: 1,
+  onEnter: 1,
+  onLeave: 1,
+  custom: 1,
+  paused: 1,
+  nested: 1,
+  prune: 1,
+  absoluteOnLeave: 1
+},
+    _fitReserved = {
+  zIndex: 1,
+  simple: 1,
+  clearProps: 1,
+  scale: 1,
+  absolute: 1,
+  fitChild: 1,
+  getVars: 1,
+  props: 1
+},
+    _camelToDashed = function _camelToDashed(p) {
+  return p.replace(/([A-Z])/g, "-$1").toLowerCase();
+},
+    _copy = function _copy(obj, exclude) {
+  var result = {},
+      p;
+
+  for (p in obj) {
+    exclude[p] || (result[p] = obj[p]);
+  }
+
+  return result;
+},
+    _memoizedProps = {},
+    _memoizeProps = function _memoizeProps(props) {
+  var p = _memoizedProps[props] = _listToArray(props);
+
+  _memoizedRemoveProps[props] = p.concat(_removeProps);
+  return p;
+},
+    _getInverseGlobalMatrix = function _getInverseGlobalMatrix(el) {
+  // integrates caching for improved performance
+  var cache = el._gsap || gsap.core.getCache(el);
+
+  if (cache.gmCache === gsap.ticker.frame) {
+    return cache.gMatrix;
+  }
+
+  cache.gmCache = gsap.ticker.frame;
+  return cache.gMatrix = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(el, true, false, true);
+},
+    _getDOMDepth = function _getDOMDepth(el, invert, level) {
+  if (level === void 0) {
+    level = 0;
+  }
+
+  // In invert is true, the sibling depth is increments of 1, and parent/nesting depth is increments of 1000. This lets us order elements in an Array to reflect document flow.
+  var parent = el.parentNode,
+      inc = 1000 * Math.pow(10, level) * (invert ? -1 : 1),
+      l = invert ? -inc * 900 : 0;
+
+  while (el) {
+    l += inc;
+    el = el.previousSibling;
+  }
+
+  return parent ? l + _getDOMDepth(parent, invert, level + 1) : l;
+},
+    _orderByDOMDepth = function _orderByDOMDepth(comps, invert, isElStates) {
+  comps.forEach(function (comp) {
+    return comp.d = _getDOMDepth(isElStates ? comp.element : comp.t, invert);
+  });
+  comps.sort(function (c1, c2) {
+    return c1.d - c2.d;
+  });
+  return comps;
+},
+    _recordInlineStyles = function _recordInlineStyles(elState, props) {
+  // records the current inline CSS properties into an Array in alternating name/value pairs that's stored in a "css" property on the state object so that we can revert later.
+  var style = elState.element.style,
+      a = elState.css = elState.css || [],
+      i = props.length,
+      p,
+      v;
+
+  while (i--) {
+    p = props[i];
+    v = style[p] || style.getPropertyValue(p);
+    a.push(v ? p : _dashedNameLookup[p] || (_dashedNameLookup[p] = _camelToDashed(p)), v);
+  }
+
+  return style;
+},
+    _applyInlineStyles = function _applyInlineStyles(state) {
+  var css = state.css,
+      style = state.element.style,
+      i = 0;
+  state.cache.uncache = 1;
+
+  for (; i < css.length; i += 2) {
+    css[i + 1] ? style[css[i]] = css[i + 1] : style.removeProperty(css[i]);
+  }
+
+  if (!css[css.indexOf("transform") + 1] && style.translate) {
+    // CSSPlugin adds scale, translate, and rotate inline CSS as "none" in order to keep CSS rules from contaminating transforms.
+    style.removeProperty("translate");
+    style.removeProperty("scale");
+    style.removeProperty("rotate");
+  }
+},
+    _setFinalStates = function _setFinalStates(comps, onlyTransforms) {
+  comps.forEach(function (c) {
+    return c.a.cache.uncache = 1;
+  });
+  onlyTransforms || comps.finalStates.forEach(_applyInlineStyles);
+},
+    _absoluteProps = "paddingTop,paddingRight,paddingBottom,paddingLeft,gridArea,transition".split(","),
+    // properties that we must record just
+_makeAbsolute = function _makeAbsolute(elState, fallbackNode, ignoreBatch) {
+  var element = elState.element,
+      width = elState.width,
+      height = elState.height,
+      uncache = elState.uncache,
+      getProp = elState.getProp,
+      style = element.style,
+      i = 4,
+      result,
+      displayIsNone,
+      cs;
+  typeof fallbackNode !== "object" && (fallbackNode = elState);
+
+  if (_batch && ignoreBatch !== 1) {
+    _batch._abs.push({
+      t: element,
+      b: elState,
+      a: elState,
+      sd: 0
+    });
+
+    _batch._final.push(function () {
+      return (elState.cache.uncache = 1) && _applyInlineStyles(elState);
+    });
+
+    return element;
+  }
+
+  displayIsNone = getProp("display") === "none";
+
+  if (!elState.isVisible || displayIsNone) {
+    displayIsNone && (_recordInlineStyles(elState, ["display"]).display = fallbackNode.display);
+    elState.matrix = fallbackNode.matrix;
+    elState.width = width = elState.width || fallbackNode.width;
+    elState.height = height = elState.height || fallbackNode.height;
+  }
+
+  _recordInlineStyles(elState, _absoluteProps);
+
+  cs = window.getComputedStyle(element);
+
+  while (i--) {
+    style[_absoluteProps[i]] = cs[_absoluteProps[i]]; // record paddings as px-based because if removed from grid, percentage-based ones could be altered.
+  }
+
+  style.gridArea = "1 / 1 / 1 / 1";
+  style.transition = "none";
+  style.position = "absolute";
+  style.width = width + "px";
+  style.height = height + "px";
+  style.top || (style.top = "0px");
+  style.left || (style.left = "0px");
+
+  if (uncache) {
+    result = new ElementState(element);
+  } else {
+    // better performance
+    result = _copy(elState, _emptyObj);
+    result.position = "absolute";
+
+    if (elState.simple) {
+      var bounds = element.getBoundingClientRect();
+      result.matrix = new _utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.Matrix2D(1, 0, 0, 1, bounds.left + (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__._getDocScrollLeft)(), bounds.top + (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__._getDocScrollTop)());
+    } else {
+      result.matrix = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(element, false, false, true);
+    }
+  }
+
+  result = _fit(result, elState, true);
+  elState.x = _closestTenth(result.x, 0.01);
+  elState.y = _closestTenth(result.y, 0.01);
+  return element;
+},
+    _filterComps = function _filterComps(comps, targets) {
+  if (targets !== true) {
+    targets = _toArray(targets);
+    comps = comps.filter(function (c) {
+      if (targets.indexOf((c.sd < 0 ? c.b : c.a).element) !== -1) {
+        return true;
+      } else {
+        c.t._gsap.renderTransform(1); // we must force transforms to render on anything that isn't being made position: absolute, otherwise the absolute position happens and then when animation begins it applies transforms which can create a new stacking context, throwing off positioning!
+
+
+        if (c.b.isVisible) {
+          c.t.style.width = c.b.width + "px"; // otherwise things can collapse when contents are made position: absolute.
+
+          c.t.style.height = c.b.height + "px";
+        }
+      }
+    });
+  }
+
+  return comps;
+},
+    _makeCompsAbsolute = function _makeCompsAbsolute(comps) {
+  return _orderByDOMDepth(comps, true).forEach(function (c) {
+    return (c.a.isVisible || c.b.isVisible) && _makeAbsolute(c.sd < 0 ? c.b : c.a, c.b, 1);
+  });
+},
+    _findElStateInState = function _findElStateInState(state, other) {
+  return other && state.idLookup[_parseElementState(other).id] || state.elementStates[0];
+},
+    _parseElementState = function _parseElementState(elOrNode, props, simple, other) {
+  return elOrNode instanceof ElementState ? elOrNode : elOrNode instanceof FlipState ? _findElStateInState(elOrNode, other) : new ElementState(typeof elOrNode === "string" ? _getEl(elOrNode) || console.warn(elOrNode + " not found") : elOrNode, props, simple);
+},
+    _recordProps = function _recordProps(elState, props) {
+  var getProp = gsap.getProperty(elState.element, null, "native"),
+      obj = elState.props = {},
+      i = props.length;
+
+  while (i--) {
+    obj[props[i]] = (getProp(props[i]) + "").trim();
+  }
+
+  obj.zIndex && (obj.zIndex = parseFloat(obj.zIndex) || 0);
+  return elState;
+},
+    _applyProps = function _applyProps(element, props) {
+  var style = element.style || element,
+      // could pass in a vars object.
+  p;
+
+  for (p in props) {
+    style[p] = props[p];
+  }
+},
+    _getID = function _getID(el) {
+  var id = el.getAttribute("data-flip-id");
+  id || el.setAttribute("data-flip-id", id = "auto-" + _id++);
+  return id;
+},
+    _elementsFromElementStates = function _elementsFromElementStates(elStates) {
+  return elStates.map(function (elState) {
+    return elState.element;
+  });
+},
+    _handleCallback = function _handleCallback(callback, elStates, tl) {
+  return callback && elStates.length && tl.add(callback(_elementsFromElementStates(elStates), tl, new FlipState(elStates, 0, true)), 0);
+},
+    _fit = function _fit(fromState, toState, scale, applyProps, fitChild, vars) {
+  var element = fromState.element,
+      cache = fromState.cache,
+      parent = fromState.parent,
+      x = fromState.x,
+      y = fromState.y,
+      width = toState.width,
+      height = toState.height,
+      scaleX = toState.scaleX,
+      scaleY = toState.scaleY,
+      rotation = toState.rotation,
+      bounds = toState.bounds,
+      styles = vars && _getStyleSaver && _getStyleSaver(element, "transform,width,height"),
+      dimensionState = fromState,
+      _toState$matrix = toState.matrix,
+      e = _toState$matrix.e,
+      f = _toState$matrix.f,
+      deep = fromState.bounds.width !== bounds.width || fromState.bounds.height !== bounds.height || fromState.scaleX !== scaleX || fromState.scaleY !== scaleY || fromState.rotation !== rotation,
+      simple = !deep && fromState.simple && toState.simple && !fitChild,
+      skewX,
+      fromPoint,
+      toPoint,
+      getProp,
+      parentMatrix,
+      matrix,
+      bbox;
+
+  if (simple || !parent) {
+    scaleX = scaleY = 1;
+    rotation = skewX = 0;
+  } else {
+    parentMatrix = _getInverseGlobalMatrix(parent);
+    matrix = parentMatrix.clone().multiply(toState.ctm ? toState.matrix.clone().multiply(toState.ctm) : toState.matrix); // root SVG elements have a ctm that we must factor out (for example, viewBox:"0 0 94 94" with a width of 200px would scale the internals by 2.127 but when we're matching the size of the root <svg> element itself, that scaling shouldn't factor in!)
+
+    rotation = _round(Math.atan2(matrix.b, matrix.a) * _RAD2DEG);
+    skewX = _round(Math.atan2(matrix.c, matrix.d) * _RAD2DEG + rotation) % 360; // in very rare cases, minor rounding might end up with 360 which should be 0.
+
+    scaleX = Math.sqrt(Math.pow(matrix.a, 2) + Math.pow(matrix.b, 2));
+    scaleY = Math.sqrt(Math.pow(matrix.c, 2) + Math.pow(matrix.d, 2)) * Math.cos(skewX * _DEG2RAD);
+
+    if (fitChild) {
+      fitChild = _toArray(fitChild)[0];
+      getProp = gsap.getProperty(fitChild);
+      bbox = fitChild.getBBox && typeof fitChild.getBBox === "function" && fitChild.getBBox();
+      dimensionState = {
+        scaleX: getProp("scaleX"),
+        scaleY: getProp("scaleY"),
+        width: bbox ? bbox.width : Math.ceil(parseFloat(getProp("width", "px"))),
+        height: bbox ? bbox.height : parseFloat(getProp("height", "px"))
+      };
+    }
+
+    cache.rotation = rotation + "deg";
+    cache.skewX = skewX + "deg";
+  }
+
+  if (scale) {
+    scaleX *= width === dimensionState.width || !dimensionState.width ? 1 : width / dimensionState.width; // note if widths are both 0, we should make scaleX 1 - some elements have box-sizing that incorporates padding, etc. and we don't want it to collapse in that case.
+
+    scaleY *= height === dimensionState.height || !dimensionState.height ? 1 : height / dimensionState.height;
+    cache.scaleX = scaleX;
+    cache.scaleY = scaleY;
+  } else {
+    width = _closestTenth(width * scaleX / dimensionState.scaleX, 0);
+    height = _closestTenth(height * scaleY / dimensionState.scaleY, 0);
+    element.style.width = width + "px";
+    element.style.height = height + "px";
+  } // if (fromState.isFixed) { // commented out because it's now taken care of in getGlobalMatrix() with a flag at the end.
+  // 	e -= _getDocScrollLeft();
+  // 	f -= _getDocScrollTop();
+  // }
+
+
+  applyProps && _applyProps(element, toState.props);
+
+  if (simple || !parent) {
+    x += e - fromState.matrix.e;
+    y += f - fromState.matrix.f;
+  } else if (deep || parent !== toState.parent) {
+    cache.renderTransform(1, cache);
+    matrix = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(fitChild || element, false, false, true);
+    fromPoint = parentMatrix.apply({
+      x: matrix.e,
+      y: matrix.f
+    });
+    toPoint = parentMatrix.apply({
+      x: e,
+      y: f
+    });
+    x += toPoint.x - fromPoint.x;
+    y += toPoint.y - fromPoint.y;
+  } else {
+    // use a faster/cheaper algorithm if we're just moving x/y
+    parentMatrix.e = parentMatrix.f = 0;
+    toPoint = parentMatrix.apply({
+      x: e - fromState.matrix.e,
+      y: f - fromState.matrix.f
+    });
+    x += toPoint.x;
+    y += toPoint.y;
+  }
+
+  x = _closestTenth(x, 0.02);
+  y = _closestTenth(y, 0.02);
+
+  if (vars && !(vars instanceof ElementState)) {
+    // revert
+    styles && styles.revert();
+  } else {
+    // or apply the transform immediately
+    cache.x = x + "px";
+    cache.y = y + "px";
+    cache.renderTransform(1, cache);
+  }
+
+  if (vars) {
+    vars.x = x;
+    vars.y = y;
+    vars.rotation = rotation;
+    vars.skewX = skewX;
+
+    if (scale) {
+      vars.scaleX = scaleX;
+      vars.scaleY = scaleY;
+    } else {
+      vars.width = width;
+      vars.height = height;
+    }
+  }
+
+  return vars || cache;
+},
+    _parseState = function _parseState(targetsOrState, vars) {
+  return targetsOrState instanceof FlipState ? targetsOrState : new FlipState(targetsOrState, vars);
+},
+    _getChangingElState = function _getChangingElState(toState, fromState, id) {
+  var to1 = toState.idLookup[id],
+      to2 = toState.alt[id];
+  return to2.isVisible && (!(fromState.getElementState(to2.element) || to2).isVisible || !to1.isVisible) ? to2 : to1;
+},
+    _bodyMetrics = [],
+    _bodyProps = "width,height,overflowX,overflowY".split(","),
+    _bodyLocked,
+    _lockBodyScroll = function _lockBodyScroll(lock) {
+  // if there's no scrollbar, we should lock that so that measurements don't get affected by temporary repositioning, like if something is centered in the window.
+  if (lock !== _bodyLocked) {
+    var s = _body.style,
+        w = _body.clientWidth === window.outerWidth,
+        h = _body.clientHeight === window.outerHeight,
+        i = 4;
+
+    if (lock && (w || h)) {
+      while (i--) {
+        _bodyMetrics[i] = s[_bodyProps[i]];
+      }
+
+      if (w) {
+        s.width = _body.clientWidth + "px";
+        s.overflowY = "hidden";
+      }
+
+      if (h) {
+        s.height = _body.clientHeight + "px";
+        s.overflowX = "hidden";
+      }
+
+      _bodyLocked = lock;
+    } else if (_bodyLocked) {
+      while (i--) {
+        _bodyMetrics[i] ? s[_bodyProps[i]] = _bodyMetrics[i] : s.removeProperty(_camelToDashed(_bodyProps[i]));
+      }
+
+      _bodyLocked = lock;
+    }
+  }
+},
+    _fromTo = function _fromTo(fromState, toState, vars, relative) {
+  // relative is -1 if "from()", and 1 if "to()"
+  fromState instanceof FlipState && toState instanceof FlipState || console.warn("Not a valid state object.");
+  vars = vars || {};
+
+  var _vars = vars,
+      clearProps = _vars.clearProps,
+      onEnter = _vars.onEnter,
+      onLeave = _vars.onLeave,
+      absolute = _vars.absolute,
+      absoluteOnLeave = _vars.absoluteOnLeave,
+      custom = _vars.custom,
+      delay = _vars.delay,
+      paused = _vars.paused,
+      repeat = _vars.repeat,
+      repeatDelay = _vars.repeatDelay,
+      yoyo = _vars.yoyo,
+      toggleClass = _vars.toggleClass,
+      nested = _vars.nested,
+      _zIndex = _vars.zIndex,
+      scale = _vars.scale,
+      fade = _vars.fade,
+      stagger = _vars.stagger,
+      spin = _vars.spin,
+      prune = _vars.prune,
+      props = ("props" in vars ? vars : fromState).props,
+      tweenVars = _copy(vars, _reserved),
+      animation = gsap.timeline({
+    delay: delay,
+    paused: paused,
+    repeat: repeat,
+    repeatDelay: repeatDelay,
+    yoyo: yoyo,
+    data: "isFlip"
+  }),
+      remainingProps = tweenVars,
+      entering = [],
+      leaving = [],
+      comps = [],
+      swapOutTargets = [],
+      spinNum = spin === true ? 1 : spin || 0,
+      spinFunc = typeof spin === "function" ? spin : function () {
+    return spinNum;
+  },
+      interrupted = fromState.interrupted || toState.interrupted,
+      addFunc = animation[relative !== 1 ? "to" : "from"],
+      v,
+      p,
+      endTime,
+      i,
+      el,
+      comp,
+      state,
+      targets,
+      finalStates,
+      fromNode,
+      toNode,
+      run,
+      a,
+      b; //relative || (toState = (new FlipState(toState.targets, {props: props})).fit(toState, scale));
+
+
+  for (p in toState.idLookup) {
+    toNode = !toState.alt[p] ? toState.idLookup[p] : _getChangingElState(toState, fromState, p);
+    el = toNode.element;
+    fromNode = fromState.idLookup[p];
+    fromState.alt[p] && el === fromNode.element && (fromState.alt[p].isVisible || !toNode.isVisible) && (fromNode = fromState.alt[p]);
+
+    if (fromNode) {
+      comp = {
+        t: el,
+        b: fromNode,
+        a: toNode,
+        sd: fromNode.element === el ? 0 : toNode.isVisible ? 1 : -1
+      };
+      comps.push(comp);
+
+      if (comp.sd) {
+        if (comp.sd < 0) {
+          comp.b = toNode;
+          comp.a = fromNode;
+        } // for swapping elements that got interrupted, we must re-record the inline styles to ensure they're not tainted. Remember, .batch() permits getState() not to force in-progress flips to their end state.
+
+
+        interrupted && _recordInlineStyles(comp.b, props ? _memoizedRemoveProps[props] : _removeProps);
+        fade && comps.push(comp.swap = {
+          t: fromNode.element,
+          b: comp.b,
+          a: comp.a,
+          sd: -comp.sd,
+          swap: comp
+        });
+      }
+
+      el._flip = fromNode.element._flip = _batch ? _batch.timeline : animation;
+    } else if (toNode.isVisible) {
+      comps.push({
+        t: el,
+        b: _copy(toNode, {
+          isVisible: 1
+        }),
+        a: toNode,
+        sd: 0,
+        entering: 1
+      }); // to include it in the "entering" Array and do absolute positioning if necessary
+
+      el._flip = _batch ? _batch.timeline : animation;
+    }
+  }
+
+  props && (_memoizedProps[props] || _memoizeProps(props)).forEach(function (p) {
+    return tweenVars[p] = function (i) {
+      return comps[i].a.props[p];
+    };
+  });
+  comps.finalStates = finalStates = [];
+
+  run = function run() {
+    _orderByDOMDepth(comps);
+
+    _lockBodyScroll(true); // otherwise, measurements may get thrown off when things get fit.
+    // TODO: cache the matrix, especially for parent because it'll probably get reused quite a bit, but lock it to a particular cycle(?).
+
+
+    for (i = 0; i < comps.length; i++) {
+      comp = comps[i];
+      a = comp.a;
+      b = comp.b;
+
+      if (prune && !a.isDifferent(b) && !comp.entering) {
+        // only flip if things changed! Don't omit it from comps initially because that'd prevent the element from being positioned absolutely (if necessary)
+        comps.splice(i--, 1);
+      } else {
+        el = comp.t;
+        nested && !(comp.sd < 0) && i && (a.matrix = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(el, false, false, true)); // moving a parent affects the position of children
+
+        if (b.isVisible && a.isVisible) {
+          if (comp.sd < 0) {
+            // swapping OUT (swap direction of -1 is out)
+            state = new ElementState(el, props, fromState.simple);
+
+            _fit(state, a, scale, 0, 0, state);
+
+            state.matrix = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(el, false, false, true);
+            state.css = comp.b.css;
+            comp.a = a = state;
+            fade && (el.style.opacity = interrupted ? b.opacity : a.opacity);
+            stagger && swapOutTargets.push(el);
+          } else if (comp.sd > 0 && fade) {
+            // swapping IN (swap direction of 1 is in)
+            el.style.opacity = interrupted ? a.opacity - b.opacity : "0";
+          }
+
+          _fit(a, b, scale, props);
+        } else if (b.isVisible !== a.isVisible) {
+          // either entering or leaving (one side is invisible)
+          if (!b.isVisible) {
+            // entering
+            a.isVisible && entering.push(a);
+            comps.splice(i--, 1);
+          } else if (!a.isVisible) {
+            // leaving
+            b.css = a.css;
+            leaving.push(b);
+            comps.splice(i--, 1);
+            absolute && nested && _fit(a, b, scale, props);
+          }
+        }
+
+        if (!scale) {
+          el.style.maxWidth = Math.max(a.width, b.width) + "px";
+          el.style.maxHeight = Math.max(a.height, b.height) + "px";
+          el.style.minWidth = Math.min(a.width, b.width) + "px";
+          el.style.minHeight = Math.min(a.height, b.height) + "px";
+        }
+
+        nested && toggleClass && el.classList.add(toggleClass);
+      }
+
+      finalStates.push(a);
+    }
+
+    var classTargets;
+
+    if (toggleClass) {
+      classTargets = finalStates.map(function (s) {
+        return s.element;
+      });
+      nested && classTargets.forEach(function (e) {
+        return e.classList.remove(toggleClass);
+      }); // there could be a delay, so don't leave the classes applied (we'll do it in a timeline callback)
+    }
+
+    _lockBodyScroll(false);
+
+    if (scale) {
+      tweenVars.scaleX = function (i) {
+        return comps[i].a.scaleX;
+      };
+
+      tweenVars.scaleY = function (i) {
+        return comps[i].a.scaleY;
+      };
+    } else {
+      tweenVars.width = function (i) {
+        return comps[i].a.width + "px";
+      };
+
+      tweenVars.height = function (i) {
+        return comps[i].a.height + "px";
+      };
+
+      tweenVars.autoRound = vars.autoRound || false;
+    }
+
+    tweenVars.x = function (i) {
+      return comps[i].a.x + "px";
+    };
+
+    tweenVars.y = function (i) {
+      return comps[i].a.y + "px";
+    };
+
+    tweenVars.rotation = function (i) {
+      return comps[i].a.rotation + (spin ? spinFunc(i, targets[i], targets) * 360 : 0);
+    };
+
+    tweenVars.skewX = function (i) {
+      return comps[i].a.skewX;
+    };
+
+    targets = comps.map(function (c) {
+      return c.t;
+    });
+
+    if (_zIndex || _zIndex === 0) {
+      tweenVars.modifiers = {
+        zIndex: function zIndex() {
+          return _zIndex;
+        }
+      };
+      tweenVars.zIndex = _zIndex;
+      tweenVars.immediateRender = vars.immediateRender !== false;
+    }
+
+    fade && (tweenVars.opacity = function (i) {
+      return comps[i].sd < 0 ? 0 : comps[i].sd > 0 ? comps[i].a.opacity : "+=0";
+    });
+
+    if (swapOutTargets.length) {
+      stagger = gsap.utils.distribute(stagger);
+      var dummyArray = targets.slice(swapOutTargets.length);
+
+      tweenVars.stagger = function (i, el) {
+        return stagger(~swapOutTargets.indexOf(el) ? targets.indexOf(comps[i].swap.t) : i, el, dummyArray);
+      };
+    } // // for testing...
+    // gsap.delayedCall(vars.data ? 50 : 1, function() {
+    // 	animation.eventCallback("onComplete", () => _setFinalStates(comps, !clearProps));
+    // 	addFunc.call(animation, targets, tweenVars, 0).play();
+    // });
+    // return;
+
+
+    _callbacks.forEach(function (name) {
+      return vars[name] && animation.eventCallback(name, vars[name], vars[name + "Params"]);
+    }); // apply callbacks to the timeline, not tweens (because "custom" timing can make multiple tweens)
+
+
+    if (custom && targets.length) {
+      // bust out the custom properties as their own tweens so they can use different eases, durations, etc.
+      remainingProps = _copy(tweenVars, _reserved);
+
+      if ("scale" in custom) {
+        custom.scaleX = custom.scaleY = custom.scale;
+        delete custom.scale;
+      }
+
+      for (p in custom) {
+        v = _copy(custom[p], _fitReserved);
+        v[p] = tweenVars[p];
+        !("duration" in v) && "duration" in tweenVars && (v.duration = tweenVars.duration);
+        v.stagger = tweenVars.stagger;
+        addFunc.call(animation, targets, v, 0);
+        delete remainingProps[p];
+      }
+    }
+
+    if (targets.length || leaving.length || entering.length) {
+      toggleClass && animation.add(function () {
+        return _toggleClass(classTargets, toggleClass, animation._zTime < 0 ? "remove" : "add");
+      }, 0) && !paused && _toggleClass(classTargets, toggleClass, "add");
+      targets.length && addFunc.call(animation, targets, remainingProps, 0);
+    }
+
+    _handleCallback(onEnter, entering, animation);
+
+    _handleCallback(onLeave, leaving, animation);
+
+    var batchTl = _batch && _batch.timeline;
+
+    if (batchTl) {
+      batchTl.add(animation, 0);
+
+      _batch._final.push(function () {
+        return _setFinalStates(comps, !clearProps);
+      });
+    }
+
+    endTime = animation.duration();
+    animation.call(function () {
+      var forward = animation.time() >= endTime;
+      forward && !batchTl && _setFinalStates(comps, !clearProps);
+      toggleClass && _toggleClass(classTargets, toggleClass, forward ? "remove" : "add");
+    });
+  };
+
+  absoluteOnLeave && (absolute = comps.filter(function (comp) {
+    return !comp.sd && !comp.a.isVisible && comp.b.isVisible;
+  }).map(function (comp) {
+    return comp.a.element;
+  }));
+
+  if (_batch) {
+    var _batch$_abs;
+
+    absolute && (_batch$_abs = _batch._abs).push.apply(_batch$_abs, _filterComps(comps, absolute));
+
+    _batch._run.push(run);
+  } else {
+    absolute && _makeCompsAbsolute(_filterComps(comps, absolute)); // when making absolute, we must go in a very particular order so that document flow changes don't affect things. Don't make it visible if both the before and after states are invisible! There's no point, and it could make things appear visible during the flip that shouldn't be.
+
+    run();
+  }
+
+  var anim = _batch ? _batch.timeline : animation;
+
+  anim.revert = function () {
+    return _killFlip(anim, 1, 1);
+  }; // a Flip timeline should behave very different when reverting - it should actually jump to the end so that styles get cleared out.
+
+
+  return anim;
+},
+    _interrupt = function _interrupt(tl) {
+  tl.vars.onInterrupt && tl.vars.onInterrupt.apply(tl, tl.vars.onInterruptParams || []);
+  tl.getChildren(true, false, true).forEach(_interrupt);
+},
+    _killFlip = function _killFlip(tl, action, force) {
+  // action: 0 = nothing, 1 = complete, 2 = only kill (don't complete)
+  if (tl && tl.progress() < 1 && (!tl.paused() || force)) {
+    if (action) {
+      _interrupt(tl);
+
+      action < 2 && tl.progress(1); // we should also kill it in case it was added to a parent timeline.
+
+      tl.kill();
+    }
+
+    return true;
+  }
+},
+    _createLookup = function _createLookup(state) {
+  var lookup = state.idLookup = {},
+      alt = state.alt = {},
+      elStates = state.elementStates,
+      i = elStates.length,
+      elState;
+
+  while (i--) {
+    elState = elStates[i];
+    lookup[elState.id] ? alt[elState.id] = elState : lookup[elState.id] = elState;
+  }
+};
+
+var FlipState = /*#__PURE__*/function () {
+  function FlipState(targets, vars, targetsAreElementStates) {
+    this.props = vars && vars.props;
+    this.simple = !!(vars && vars.simple);
+
+    if (targetsAreElementStates) {
+      this.targets = _elementsFromElementStates(targets);
+      this.elementStates = targets;
+
+      _createLookup(this);
+    } else {
+      this.targets = _toArray(targets);
+      var soft = vars && (vars.kill === false || vars.batch && !vars.kill);
+      _batch && !soft && _batch._kill.push(this);
+      this.update(soft || !!_batch); // when batching, don't force in-progress flips to their end; we need to do that AFTER all getStates() are called.
+    }
+  }
+
+  var _proto = FlipState.prototype;
+
+  _proto.update = function update(soft) {
+    var _this = this;
+
+    this.elementStates = this.targets.map(function (el) {
+      return new ElementState(el, _this.props, _this.simple);
+    });
+
+    _createLookup(this);
+
+    this.interrupt(soft);
+    this.recordInlineStyles();
+    return this;
+  };
+
+  _proto.clear = function clear() {
+    this.targets.length = this.elementStates.length = 0;
+
+    _createLookup(this);
+
+    return this;
+  };
+
+  _proto.fit = function fit(state, scale, nested) {
+    var elStatesInOrder = _orderByDOMDepth(this.elementStates.slice(0), false, true),
+        toElStates = (state || this).idLookup,
+        i = 0,
+        fromNode,
+        toNode;
+
+    for (; i < elStatesInOrder.length; i++) {
+      fromNode = elStatesInOrder[i];
+      nested && (fromNode.matrix = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(fromNode.element, false, false, true)); // moving a parent affects the position of children
+
+      toNode = toElStates[fromNode.id];
+      toNode && _fit(fromNode, toNode, scale, true, 0, fromNode);
+      fromNode.matrix = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(fromNode.element, false, false, true);
+    }
+
+    return this;
+  };
+
+  _proto.getProperty = function getProperty(element, property) {
+    var es = this.getElementState(element) || _emptyObj;
+
+    return (property in es ? es : es.props || _emptyObj)[property];
+  };
+
+  _proto.add = function add(state) {
+    var i = state.targets.length,
+        lookup = this.idLookup,
+        alt = this.alt,
+        index,
+        es,
+        es2;
+
+    while (i--) {
+      es = state.elementStates[i];
+      es2 = lookup[es.id];
+
+      if (es2 && (es.element === es2.element || alt[es.id] && alt[es.id].element === es.element)) {
+        // if the flip id is already in this FlipState, replace it!
+        index = this.elementStates.indexOf(es.element === es2.element ? es2 : alt[es.id]);
+        this.targets.splice(index, 1, state.targets[i]);
+        this.elementStates.splice(index, 1, es);
+      } else {
+        this.targets.push(state.targets[i]);
+        this.elementStates.push(es);
+      }
+    }
+
+    state.interrupted && (this.interrupted = true);
+    state.simple || (this.simple = false);
+
+    _createLookup(this);
+
+    return this;
+  };
+
+  _proto.compare = function compare(state) {
+    var l1 = state.idLookup,
+        l2 = this.idLookup,
+        unchanged = [],
+        changed = [],
+        enter = [],
+        leave = [],
+        targets = [],
+        a1 = state.alt,
+        a2 = this.alt,
+        place = function place(s1, s2, el) {
+      return (s1.isVisible !== s2.isVisible ? s1.isVisible ? enter : leave : s1.isVisible ? changed : unchanged).push(el) && targets.push(el);
+    },
+        placeIfDoesNotExist = function placeIfDoesNotExist(s1, s2, el) {
+      return targets.indexOf(el) < 0 && place(s1, s2, el);
+    },
+        s1,
+        s2,
+        p,
+        el,
+        s1Alt,
+        s2Alt,
+        c1,
+        c2;
+
+    for (p in l1) {
+      s1Alt = a1[p];
+      s2Alt = a2[p];
+      s1 = !s1Alt ? l1[p] : _getChangingElState(state, this, p);
+      el = s1.element;
+      s2 = l2[p];
+
+      if (s2Alt) {
+        c2 = s2.isVisible || !s2Alt.isVisible && el === s2.element ? s2 : s2Alt;
+        c1 = s1Alt && !s1.isVisible && !s1Alt.isVisible && c2.element === s1Alt.element ? s1Alt : s1; //c1.element !== c2.element && c1.element === s2.element && (c2 = s2);
+
+        if (c1.isVisible && c2.isVisible && c1.element !== c2.element) {
+          // swapping, so force into "changed" array
+          (c1.isDifferent(c2) ? changed : unchanged).push(c1.element, c2.element);
+          targets.push(c1.element, c2.element);
+        } else {
+          place(c1, c2, c1.element);
+        }
+
+        s1Alt && c1.element === s1Alt.element && (s1Alt = l1[p]);
+        placeIfDoesNotExist(c1.element !== s2.element && s1Alt ? s1Alt : c1, s2, s2.element);
+        placeIfDoesNotExist(s1Alt && s1Alt.element === s2Alt.element ? s1Alt : c1, s2Alt, s2Alt.element);
+        s1Alt && placeIfDoesNotExist(s1Alt, s2Alt.element === s1Alt.element ? s2Alt : s2, s1Alt.element);
+      } else {
+        !s2 ? enter.push(el) : !s2.isDifferent(s1) ? unchanged.push(el) : place(s1, s2, el);
+        s1Alt && placeIfDoesNotExist(s1Alt, s2, s1Alt.element);
+      }
+    }
+
+    for (p in l2) {
+      if (!l1[p]) {
+        leave.push(l2[p].element);
+        a2[p] && leave.push(a2[p].element);
+      }
+    }
+
+    return {
+      changed: changed,
+      unchanged: unchanged,
+      enter: enter,
+      leave: leave
+    };
+  };
+
+  _proto.recordInlineStyles = function recordInlineStyles() {
+    var props = _memoizedRemoveProps[this.props] || _removeProps,
+        i = this.elementStates.length;
+
+    while (i--) {
+      _recordInlineStyles(this.elementStates[i], props);
+    }
+  };
+
+  _proto.interrupt = function interrupt(soft) {
+    var _this2 = this;
+
+    // soft = DON'T force in-progress flip animations to completion (like when running a batch, we can't immediately kill flips when getting states because it could contaminate positioning and other .getState() calls that will run in the batch (we kill AFTER all the .getState() calls complete).
+    var timelines = [];
+    this.targets.forEach(function (t) {
+      var tl = t._flip,
+          foundInProgress = _killFlip(tl, soft ? 0 : 1);
+
+      soft && foundInProgress && timelines.indexOf(tl) < 0 && tl.add(function () {
+        return _this2.updateVisibility();
+      });
+      foundInProgress && timelines.push(tl);
+    });
+    !soft && timelines.length && this.updateVisibility(); // if we found an in-progress Flip animation, we must record all the values in their current state at that point BUT we should update the isVisible value AFTER pushing that flip to completion so that elements that are entering or leaving will populate those Arrays properly.
+
+    this.interrupted || (this.interrupted = !!timelines.length);
+  };
+
+  _proto.updateVisibility = function updateVisibility() {
+    this.elementStates.forEach(function (es) {
+      var b = es.element.getBoundingClientRect();
+      es.isVisible = !!(b.width || b.height || b.top || b.left);
+      es.uncache = 1;
+    });
+  };
+
+  _proto.getElementState = function getElementState(element) {
+    return this.elementStates[this.targets.indexOf(_getEl(element))];
+  };
+
+  _proto.makeAbsolute = function makeAbsolute() {
+    return _orderByDOMDepth(this.elementStates.slice(0), true, true).map(_makeAbsolute);
+  };
+
+  return FlipState;
+}();
+
+var ElementState = /*#__PURE__*/function () {
+  function ElementState(element, props, simple) {
+    this.element = element;
+    this.update(props, simple);
+  }
+
+  var _proto2 = ElementState.prototype;
+
+  _proto2.isDifferent = function isDifferent(state) {
+    var b1 = this.bounds,
+        b2 = state.bounds;
+    return b1.top !== b2.top || b1.left !== b2.left || b1.width !== b2.width || b1.height !== b2.height || !this.matrix.equals(state.matrix) || this.opacity !== state.opacity || this.props && state.props && JSON.stringify(this.props) !== JSON.stringify(state.props);
+  };
+
+  _proto2.update = function update(props, simple) {
+    var self = this,
+        element = self.element,
+        getProp = gsap.getProperty(element),
+        cache = gsap.core.getCache(element),
+        bounds = element.getBoundingClientRect(),
+        bbox = element.getBBox && typeof element.getBBox === "function" && element.nodeName.toLowerCase() !== "svg" && element.getBBox(),
+        m = simple ? new _utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.Matrix2D(1, 0, 0, 1, bounds.left + (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__._getDocScrollLeft)(), bounds.top + (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__._getDocScrollTop)()) : (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(element, false, false, true);
+    cache.uncache = 1; // in case there are CSS rules that affect the element. Example: https://gsap.com/community/forums/topic/44321-bug-on-fixed-position-using-flip/
+
+    self.getProp = getProp;
+    self.element = element;
+    self.id = _getID(element);
+    self.matrix = m;
+    self.cache = cache;
+    self.bounds = bounds;
+    self.isVisible = !!(bounds.width || bounds.height || bounds.left || bounds.top);
+    self.display = getProp("display");
+    self.position = getProp("position");
+    self.parent = element.parentNode;
+    self.x = getProp("x");
+    self.y = getProp("y");
+    self.scaleX = cache.scaleX;
+    self.scaleY = cache.scaleY;
+    self.rotation = getProp("rotation");
+    self.skewX = getProp("skewX");
+    self.opacity = getProp("opacity");
+    self.width = bbox ? bbox.width : _closestTenth(getProp("width", "px"), 0.04); // round up to the closest 0.1 so that text doesn't wrap.
+
+    self.height = bbox ? bbox.height : _closestTenth(getProp("height", "px"), 0.04);
+    props && _recordProps(self, _memoizedProps[props] || _memoizeProps(props));
+    self.ctm = element.getCTM && element.nodeName.toLowerCase() === "svg" && (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__._getCTM)(element).inverse();
+    self.simple = simple || _round(m.a) === 1 && !_round(m.b) && !_round(m.c) && _round(m.d) === 1; // allows us to speed through some other tasks if it's not scale/rotated
+
+    self.uncache = 0;
+  };
+
+  return ElementState;
+}();
+
+var FlipAction = /*#__PURE__*/function () {
+  function FlipAction(vars, batch) {
+    this.vars = vars;
+    this.batch = batch;
+    this.states = [];
+    this.timeline = batch.timeline;
+  }
+
+  var _proto3 = FlipAction.prototype;
+
+  _proto3.getStateById = function getStateById(id) {
+    var i = this.states.length;
+
+    while (i--) {
+      if (this.states[i].idLookup[id]) {
+        return this.states[i];
+      }
+    }
+  };
+
+  _proto3.kill = function kill() {
+    this.batch.remove(this);
+  };
+
+  return FlipAction;
+}();
+
+var FlipBatch = /*#__PURE__*/function () {
+  function FlipBatch(id) {
+    this.id = id;
+    this.actions = [];
+    this._kill = [];
+    this._final = [];
+    this._abs = [];
+    this._run = [];
+    this.data = {};
+    this.state = new FlipState();
+    this.timeline = gsap.timeline();
+  }
+
+  var _proto4 = FlipBatch.prototype;
+
+  _proto4.add = function add(config) {
+    var result = this.actions.filter(function (action) {
+      return action.vars === config;
+    });
+
+    if (result.length) {
+      return result[0];
+    }
+
+    result = new FlipAction(typeof config === "function" ? {
+      animate: config
+    } : config, this);
+    this.actions.push(result);
+    return result;
+  };
+
+  _proto4.remove = function remove(action) {
+    var i = this.actions.indexOf(action);
+    i >= 0 && this.actions.splice(i, 1);
+    return this;
+  };
+
+  _proto4.getState = function getState(merge) {
+    var _this3 = this;
+
+    var prevBatch = _batch,
+        prevAction = _batchAction;
+    _batch = this;
+    this.state.clear();
+    this._kill.length = 0;
+    this.actions.forEach(function (action) {
+      if (action.vars.getState) {
+        action.states.length = 0;
+        _batchAction = action;
+        action.state = action.vars.getState(action);
+      }
+
+      merge && action.states.forEach(function (s) {
+        return _this3.state.add(s);
+      });
+    });
+    _batchAction = prevAction;
+    _batch = prevBatch;
+    this.killConflicts();
+    return this;
+  };
+
+  _proto4.animate = function animate() {
+    var _this4 = this;
+
+    var prevBatch = _batch,
+        tl = this.timeline,
+        i = this.actions.length,
+        finalStates,
+        endTime;
+    _batch = this;
+    tl.clear();
+    this._abs.length = this._final.length = this._run.length = 0;
+    this.actions.forEach(function (a) {
+      a.vars.animate && a.vars.animate(a);
+      var onEnter = a.vars.onEnter,
+          onLeave = a.vars.onLeave,
+          targets = a.targets,
+          s,
+          result;
+
+      if (targets && targets.length && (onEnter || onLeave)) {
+        s = new FlipState();
+        a.states.forEach(function (state) {
+          return s.add(state);
+        });
+        result = s.compare(Flip.getState(targets));
+        result.enter.length && onEnter && onEnter(result.enter);
+        result.leave.length && onLeave && onLeave(result.leave);
+      }
+    });
+
+    _makeCompsAbsolute(this._abs);
+
+    this._run.forEach(function (f) {
+      return f();
+    });
+
+    endTime = tl.duration();
+    finalStates = this._final.slice(0);
+    tl.add(function () {
+      if (endTime <= tl.time()) {
+        // only call if moving forward in the timeline (in case it's nested in a timeline that gets reversed)
+        finalStates.forEach(function (f) {
+          return f();
+        });
+
+        _forEachBatch(_this4, "onComplete");
+      }
+    });
+    _batch = prevBatch;
+
+    while (i--) {
+      this.actions[i].vars.once && this.actions[i].kill();
+    }
+
+    _forEachBatch(this, "onStart");
+
+    tl.restart();
+    return this;
+  };
+
+  _proto4.loadState = function loadState(done) {
+    done || (done = function done() {
+      return 0;
+    });
+    var queue = [];
+    this.actions.forEach(function (c) {
+      if (c.vars.loadState) {
+        var i,
+            f = function f(targets) {
+          targets && (c.targets = targets);
+          i = queue.indexOf(f);
+
+          if (~i) {
+            queue.splice(i, 1);
+            queue.length || done();
+          }
+        };
+
+        queue.push(f);
+        c.vars.loadState(f);
+      }
+    });
+    queue.length || done();
+    return this;
+  };
+
+  _proto4.setState = function setState() {
+    this.actions.forEach(function (c) {
+      return c.targets = c.vars.setState && c.vars.setState(c);
+    });
+    return this;
+  };
+
+  _proto4.killConflicts = function killConflicts(soft) {
+    this.state.interrupt(soft);
+
+    this._kill.forEach(function (state) {
+      return state.interrupt(soft);
+    });
+
+    return this;
+  };
+
+  _proto4.run = function run(skipGetState, merge) {
+    var _this5 = this;
+
+    if (this !== _batch) {
+      skipGetState || this.getState(merge);
+      this.loadState(function () {
+        if (!_this5._killed) {
+          _this5.setState();
+
+          _this5.animate();
+        }
+      });
+    }
+
+    return this;
+  };
+
+  _proto4.clear = function clear(stateOnly) {
+    this.state.clear();
+    stateOnly || (this.actions.length = 0);
+  };
+
+  _proto4.getStateById = function getStateById(id) {
+    var i = this.actions.length,
+        s;
+
+    while (i--) {
+      s = this.actions[i].getStateById(id);
+
+      if (s) {
+        return s;
+      }
+    }
+
+    return this.state.idLookup[id] && this.state;
+  };
+
+  _proto4.kill = function kill() {
+    this._killed = 1;
+    this.clear();
+    delete _batchLookup[this.id];
+  };
+
+  return FlipBatch;
+}();
+
+var Flip = /*#__PURE__*/function () {
+  function Flip() {}
+
+  Flip.getState = function getState(targets, vars) {
+    var state = _parseState(targets, vars);
+
+    _batchAction && _batchAction.states.push(state);
+    vars && vars.batch && Flip.batch(vars.batch).state.add(state);
+    return state;
+  };
+
+  Flip.from = function from(state, vars) {
+    vars = vars || {};
+    "clearProps" in vars || (vars.clearProps = true);
+    return _fromTo(state, _parseState(vars.targets || state.targets, {
+      props: vars.props || state.props,
+      simple: vars.simple,
+      kill: !!vars.kill
+    }), vars, -1);
+  };
+
+  Flip.to = function to(state, vars) {
+    return _fromTo(state, _parseState(vars.targets || state.targets, {
+      props: vars.props || state.props,
+      simple: vars.simple,
+      kill: !!vars.kill
+    }), vars, 1);
+  };
+
+  Flip.fromTo = function fromTo(fromState, toState, vars) {
+    return _fromTo(fromState, toState, vars);
+  };
+
+  Flip.fit = function fit(fromEl, toEl, vars) {
+    var v = vars ? _copy(vars, _fitReserved) : {},
+        _ref = vars || v,
+        absolute = _ref.absolute,
+        scale = _ref.scale,
+        getVars = _ref.getVars,
+        props = _ref.props,
+        runBackwards = _ref.runBackwards,
+        onComplete = _ref.onComplete,
+        simple = _ref.simple,
+        fitChild = vars && vars.fitChild && _getEl(vars.fitChild),
+        before = _parseElementState(toEl, props, simple, fromEl),
+        after = _parseElementState(fromEl, 0, simple, before),
+        inlineProps = props ? _memoizedRemoveProps[props] : _removeProps,
+        ctx = gsap.context();
+
+    props && _applyProps(v, before.props);
+
+    _recordInlineStyles(after, inlineProps);
+
+    if (runBackwards) {
+      "immediateRender" in v || (v.immediateRender = true);
+
+      v.onComplete = function () {
+        _applyInlineStyles(after);
+
+        onComplete && onComplete.apply(this, arguments);
+      };
+    }
+
+    absolute && _makeAbsolute(after, before);
+    v = _fit(after, before, scale || fitChild, !v.duration && props, fitChild, v.duration || getVars ? v : 0);
+    typeof vars === "object" && "zIndex" in vars && (v.zIndex = vars.zIndex);
+    ctx && !getVars && ctx.add(function () {
+      return function () {
+        return _applyInlineStyles(after);
+      };
+    });
+    return getVars ? v : v.duration ? gsap.to(after.element, v) : null;
+  };
+
+  Flip.makeAbsolute = function makeAbsolute(targetsOrStates, vars) {
+    return (targetsOrStates instanceof FlipState ? targetsOrStates : new FlipState(targetsOrStates, vars)).makeAbsolute();
+  };
+
+  Flip.batch = function batch(id) {
+    id || (id = "default");
+    return _batchLookup[id] || (_batchLookup[id] = new FlipBatch(id));
+  };
+
+  Flip.killFlipsOf = function killFlipsOf(targets, complete) {
+    (targets instanceof FlipState ? targets.targets : _toArray(targets)).forEach(function (t) {
+      return t && _killFlip(t._flip, complete !== false ? 1 : 2);
+    });
+  };
+
+  Flip.isFlipping = function isFlipping(target) {
+    var f = Flip.getByTarget(target);
+    return !!f && f.isActive();
+  };
+
+  Flip.getByTarget = function getByTarget(target) {
+    return (_getEl(target) || _emptyObj)._flip;
+  };
+
+  Flip.getElementState = function getElementState(target, props) {
+    return new ElementState(_getEl(target), props);
+  };
+
+  Flip.convertCoordinates = function convertCoordinates(fromElement, toElement, point) {
+    var m = (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(toElement, true, true).multiply((0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__.getGlobalMatrix)(fromElement));
+    return point ? m.apply(point) : m;
+  };
+
+  Flip.register = function register(core) {
+    _body = typeof document !== "undefined" && document.body;
+
+    if (_body) {
+      gsap = core;
+
+      (0,_utils_matrix_js__WEBPACK_IMPORTED_MODULE_0__._setDoc)(_body);
+
+      _toArray = gsap.utils.toArray;
+      _getStyleSaver = gsap.core.getStyleSaver;
+      var snap = gsap.utils.snap(0.1);
+
+      _closestTenth = function _closestTenth(value, add) {
+        return snap(parseFloat(value) + add);
+      };
+    }
+  };
+
+  return Flip;
+}();
+Flip.version = "3.13.0"; // function whenImagesLoad(el, func) {
+// 	let pending = [],
+// 		onLoad = e => {
+// 			pending.splice(pending.indexOf(e.target), 1);
+// 			e.target.removeEventListener("load", onLoad);
+// 			pending.length || func();
+// 		};
+// 	gsap.utils.toArray(el.tagName.toLowerCase() === "img" ? el : el.querySelectorAll("img")).forEach(img => img.complete || img.addEventListener("load", onLoad) || pending.push(img));
+// 	pending.length || func();
+// }
+
+typeof window !== "undefined" && window.gsap && window.gsap.registerPlugin(Flip);
+
+
+/***/ }),
+
 /***/ "./node_modules/gsap/Observer.js":
 /*!***************************************!*\
   !*** ./node_modules/gsap/Observer.js ***!
@@ -9790,6 +11326,1029 @@ Observer.getById = function (id) {
 };
 
 _getGSAP() && gsap.registerPlugin(Observer);
+
+
+/***/ }),
+
+/***/ "./node_modules/gsap/ScrollSmoother.js":
+/*!*********************************************!*\
+  !*** ./node_modules/gsap/ScrollSmoother.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ScrollSmoother: () => (/* binding */ ScrollSmoother),
+/* harmony export */   "default": () => (/* binding */ ScrollSmoother)
+/* harmony export */ });
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+/*!
+ * ScrollSmoother 3.13.0
+ * https://gsap.com
+ *
+ * @license Copyright 2008-2025, GreenSock. All rights reserved.
+ * Subject to the terms at https://gsap.com/standard-license
+ * @author: Jack Doyle, jack@greensock.com
+*/
+
+/* eslint-disable */
+var gsap,
+    _coreInitted,
+    _win,
+    _doc,
+    _docEl,
+    _body,
+    _root,
+    _toArray,
+    _clamp,
+    ScrollTrigger,
+    _mainInstance,
+    _expo,
+    _getVelocityProp,
+    _inputObserver,
+    _context,
+    _onResizeDelayedCall,
+    _windowExists = function _windowExists() {
+  return typeof window !== "undefined";
+},
+    _getGSAP = function _getGSAP() {
+  return gsap || _windowExists() && (gsap = window.gsap) && gsap.registerPlugin && gsap;
+},
+    _bonusValidated = 1,
+    //<name>ScrollSmoother</name>
+_round = function _round(value) {
+  return Math.round(value * 100000) / 100000 || 0;
+},
+    _maxScroll = function _maxScroll(scroller) {
+  return ScrollTrigger.maxScroll(scroller || _win);
+},
+    _autoDistance = function _autoDistance(el, progress) {
+  // for calculating the distance (and offset) for elements with speed: "auto". Progress is for if it's "above the fold" (negative start position), so we can crop as little as possible.
+  var parent = el.parentNode || _docEl,
+      b1 = el.getBoundingClientRect(),
+      b2 = parent.getBoundingClientRect(),
+      gapTop = b2.top - b1.top,
+      gapBottom = b2.bottom - b1.bottom,
+      change = (Math.abs(gapTop) > Math.abs(gapBottom) ? gapTop : gapBottom) / (1 - progress),
+      offset = -change * progress,
+      ratio,
+      extraChange;
+
+  if (change > 0) {
+    // if the image starts at the BOTTOM of the container, adjust things so that it shows as much of the image as possible while still covering.
+    ratio = b2.height / (_win.innerHeight + b2.height);
+    extraChange = ratio === 0.5 ? b2.height * 2 : Math.min(b2.height, Math.abs(-change * ratio / (2 * ratio - 1))) * 2 * (progress || 1);
+    offset += progress ? -extraChange * progress : -extraChange / 2; // whatever the offset, we must double that in the opposite direction to compensate.
+
+    change += extraChange;
+  }
+
+  return {
+    change: change,
+    offset: offset
+  };
+},
+    _wrap = function _wrap(el) {
+  var wrapper = _doc.querySelector(".ScrollSmoother-wrapper"); // some frameworks load multiple times, so one already exists, just use that to avoid duplicates
+
+
+  if (!wrapper) {
+    wrapper = _doc.createElement("div");
+    wrapper.classList.add("ScrollSmoother-wrapper");
+    el.parentNode.insertBefore(wrapper, el);
+    wrapper.appendChild(el);
+  }
+
+  return wrapper;
+};
+
+var ScrollSmoother = /*#__PURE__*/function () {
+  function ScrollSmoother(vars) {
+    var _this = this;
+
+    _coreInitted || ScrollSmoother.register(gsap) || console.warn("Please gsap.registerPlugin(ScrollSmoother)");
+    vars = this.vars = vars || {};
+    _mainInstance && _mainInstance.kill();
+    _mainInstance = this;
+
+    _context(this);
+
+    var _vars = vars,
+        smoothTouch = _vars.smoothTouch,
+        _onUpdate = _vars.onUpdate,
+        onStop = _vars.onStop,
+        smooth = _vars.smooth,
+        onFocusIn = _vars.onFocusIn,
+        normalizeScroll = _vars.normalizeScroll,
+        wholePixels = _vars.wholePixels,
+        content,
+        wrapper,
+        height,
+        mainST,
+        effects,
+        sections,
+        intervalID,
+        wrapperCSS,
+        contentCSS,
+        paused,
+        pausedNormalizer,
+        recordedRefreshScroll,
+        recordedRefreshScrub,
+        allowUpdates,
+        self = this,
+        effectsPrefix = vars.effectsPrefix || "",
+        scrollFunc = ScrollTrigger.getScrollFunc(_win),
+        smoothDuration = ScrollTrigger.isTouch === 1 ? smoothTouch === true ? 0.8 : parseFloat(smoothTouch) || 0 : smooth === 0 || smooth === false ? 0 : parseFloat(smooth) || 0.8,
+        speed = smoothDuration && +vars.speed || 1,
+        currentY = 0,
+        delta = 0,
+        startupPhase = 1,
+        tracker = _getVelocityProp(0),
+        updateVelocity = function updateVelocity() {
+      return tracker.update(-currentY);
+    },
+        scroll = {
+      y: 0
+    },
+        removeScroll = function removeScroll() {
+      return content.style.overflow = "visible";
+    },
+        isProxyScrolling,
+        killScrub = function killScrub(trigger) {
+      trigger.update(); // it's possible that it hasn't been synchronized with the actual scroll position yet, like if it's later in the _triggers Array. If it was already updated, it'll skip the processing anyway.
+
+      var scrub = trigger.getTween();
+
+      if (scrub) {
+        scrub.pause();
+        scrub._time = scrub._dur; // force the playhead to completion without rendering just so that when it resumes, it doesn't jump back in the .resetTo().
+
+        scrub._tTime = scrub._tDur;
+      }
+
+      isProxyScrolling = false;
+      trigger.animation.progress(trigger.progress, true);
+    },
+        render = function render(y, force) {
+      if (y !== currentY && !paused || force) {
+        wholePixels && (y = Math.round(y));
+
+        if (smoothDuration) {
+          content.style.transform = "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, " + y + ", 0, 1)"; //content.style.transform = "translateY(" + y + "px)"; // NOTE: when we used matrix3d() or set will-change: transform, it performed noticeably worse on iOS counter-intuitively!
+
+          content._gsap.y = y + "px";
+        }
+
+        delta = y - currentY;
+        currentY = y;
+        ScrollTrigger.isUpdating || ScrollSmoother.isRefreshing || ScrollTrigger.update(); // note: if we allowed an update() when in the middle of a refresh() it could render all the other ScrollTriggers and inside the update(), _refreshing would be true thus scrubs would jump instantly, but then on the very next update they'd continue from there. Basically this allowed update() to be called on OTHER ScrollTriggers during the refresh() of the mainST which could cause some complications. See https://gsap.com/forums/topic/35536-smoothscroller-ignoremobileresize-for-non-touch-devices
+      }
+    },
+        scrollTop = function scrollTop(value) {
+      if (arguments.length) {
+        value < 0 && (value = 0);
+        scroll.y = -value; // don't use currentY because we must accurately track the delta variable (in render() method)
+
+        isProxyScrolling = true; // otherwise, if snapping was applied (or anything that attempted to SET the scroll proxy's scroll position), we'd set the scroll here which would then (on the next tick) update the content tween/ScrollTrigger which would try to smoothly animate to that new value, thus the scrub tween would impede the progress. So we use this flag to respond accordingly in the ScrollTrigger's onUpdate and effectively force the scrub to its end immediately.
+
+        paused ? currentY = -value : render(-value);
+        ScrollTrigger.isRefreshing ? mainST.update() : scrollFunc(value / speed); // during a refresh, we revert all scrollers to 0 and then put them back. We shouldn't force the window to that value too during the refresh.
+
+        return this;
+      }
+
+      return -currentY;
+    },
+        resizeObserver = typeof ResizeObserver !== "undefined" && vars.autoResize !== false && new ResizeObserver(function () {
+      if (!ScrollTrigger.isRefreshing) {
+        var max = _maxScroll(wrapper) * speed;
+        max < -currentY && scrollTop(max); // if the user scrolled down to the bottom, for example, and then the page resizes smaller, we should adjust things accordingly right away so that the scroll position isn't past the very end.
+
+        _onResizeDelayedCall.restart(true);
+      }
+    }),
+        lastFocusElement,
+        _onFocusIn = function _onFocusIn(e) {
+      // when the focus changes, make sure that element is on-screen
+      wrapper.scrollTop = 0;
+
+      if (e.target.contains && e.target.contains(wrapper) || onFocusIn && onFocusIn(_this, e) === false) {
+        return;
+      }
+
+      ScrollTrigger.isInViewport(e.target) || e.target === lastFocusElement || _this.scrollTo(e.target, false, "center center");
+      lastFocusElement = e.target;
+    },
+        _transformPosition = function _transformPosition(position, st) {
+      // feed in a position (start or end scroll value) and a ScrollTrigger that's associated with a parallax effect and it'll spit back the adjusted position based on the movement of the trigger. For example, if the trigger goes at a speed of 0.5 while in the viewport, we must push the start/end values of OTHER ScrollTriggers that use that same trigger further down to compensate.
+      if (position < st.start) {
+        return position;
+      }
+
+      var ratio = isNaN(st.ratio) ? 1 : st.ratio,
+          change = st.end - st.start,
+          distance = position - st.start,
+          offset = st.offset || 0,
+          pins = st.pins || [],
+          pinOffset = pins.offset || 0,
+          progressOffset = st._startClamp && st.start <= 0 || st.pins && st.pins.offset ? 0 : st._endClamp && st.end === _maxScroll() ? 1 : 0.5;
+      pins.forEach(function (p) {
+        // remove any pinning space/distance
+        change -= p.distance;
+
+        if (p.nativeStart <= position) {
+          distance -= p.distance;
+        }
+      });
+
+      if (pinOffset) {
+        // edge case when a clamped effect starts mid-pin; we've gotta compensate for the smaller change amount (the yOffset gets set to the st.pins.offset, so let's say it clamps such that the page starts with the element pinned 100px in, we have to set the yOffset to 100 but then subtract 100 from the change value to compensate, thus we must scale the positions accordingly based on the ratios. Like if it would normally have a change of 2000, and a pin would normally hit at 1000, but we're offsetting by 100, that means everything must scale now that we're only moving 1900px rather than 2000px.
+        distance *= (change - pinOffset / ratio) / change;
+      }
+
+      return position + (distance - offset * progressOffset) / ratio - distance;
+    },
+        adjustEffectRelatedTriggers = function adjustEffectRelatedTriggers(st, triggers, partial) {
+      // if we're using this method to do only a partial Array of triggers, we should NOT reset or rebuild the pin data. For example, we tap into this from the offset() method.
+      partial || (st.pins.length = st.pins.offset = 0);
+      var pins = st.pins,
+          markers = st.markers,
+          dif,
+          isClamped,
+          start,
+          end,
+          nativeStart,
+          nativeEnd,
+          i,
+          trig;
+
+      for (i = 0; i < triggers.length; i++) {
+        trig = triggers[i];
+
+        if (st.trigger && trig.trigger && st !== trig && (trig.trigger === st.trigger || trig.pinnedContainer === st.trigger || st.trigger.contains(trig.trigger))) {
+          nativeStart = trig._startNative || trig._startClamp || trig.start;
+          nativeEnd = trig._endNative || trig._endClamp || trig.end;
+          start = _transformPosition(nativeStart, st); // note: _startClamp and _endClamp are populated with the unclamped values. For the sake of efficiency sake, we use the property both like a boolean to indicate that clamping is enabled AND the actual original unclamped value which we need in situations like if there's a data-speed="" on an element that has something like start="clamp(top bottom)". For in-viewport elements, it would clamp the values on the ScrollTrigger first, then feed it here and we'd adjust it on the clamped value which could throw things off - we need to apply the logic to the unclamped value and THEN re-apply clamping on the result.
+
+          end = trig.pin && nativeEnd > 0 ? start + (nativeEnd - nativeStart) : _transformPosition(nativeEnd, st);
+          trig.setPositions(start, end, true, (trig._startClamp ? Math.max(0, start) : start) - nativeStart); // the last value (pinOffset) is to adjust the pinStart y value inside ScrollTrigger to accommodate for the y offset that gets applied by the parallax effect.
+
+          trig.markerStart && markers.push(gsap.quickSetter([trig.markerStart, trig.markerEnd], "y", "px"));
+
+          if (trig.pin && trig.end > 0 && !partial) {
+            dif = trig.end - trig.start;
+            isClamped = st._startClamp && trig.start < 0;
+
+            if (isClamped) {
+              if (st.start > 0) {
+                // the trigger element on the effect must have been pinned BEFORE its starting position, so in this edge case we must adjust the start position to be 0 and end position to get pushed further by the amount of the overlap
+                st.setPositions(0, st.end + (st._startNative - st.start), true); // add the overlap amount
+
+                adjustEffectRelatedTriggers(st, triggers);
+                return; // start over for this trigger element!
+              }
+
+              dif += trig.start;
+              pins.offset = -trig.start; // edge case when a clamped effect starts mid-pin, we've gotta compensate in the onUpdate algorithm.
+            }
+
+            pins.push({
+              start: trig.start,
+              nativeStart: nativeStart,
+              end: trig.end,
+              distance: dif,
+              trig: trig
+            });
+            st.setPositions(st.start, st.end + (isClamped ? -trig.start : dif), true);
+          }
+        }
+      }
+    },
+        adjustParallaxPosition = function adjustParallaxPosition(triggers, createdAfterEffectWasApplied) {
+      effects.forEach(function (st) {
+        return adjustEffectRelatedTriggers(st, triggers, createdAfterEffectWasApplied);
+      });
+    },
+        onRefresh = function onRefresh() {
+      _docEl = _doc.documentElement; // some frameworks like Astro may cache the <body> and replace it during routing, so we'll just re-record the _docEl and _body for safety (otherwise, the markers may not get added properly).
+
+      _body = _doc.body;
+      removeScroll();
+      requestAnimationFrame(removeScroll);
+
+      if (effects) {
+        // adjust all the effect start/end positions including any pins!
+        ScrollTrigger.getAll().forEach(function (st) {
+          // record the native start/end positions because we'll be messing with them and need a way to have a "source of truth"
+          st._startNative = st.start;
+          st._endNative = st.end;
+        });
+        effects.forEach(function (st) {
+          var start = st._startClamp || st.start,
+              // if it was already clamped, we should base things on the unclamped value and then do the clamping here.
+          end = st.autoSpeed ? Math.min(_maxScroll(), st.end) : start + Math.abs((st.end - start) / st.ratio),
+              offset = end - st.end; // we split the difference so that it reaches its natural position in the MIDDLE of the viewport
+
+          start -= offset / 2;
+          end -= offset / 2;
+
+          if (start > end) {
+            var s = start;
+            start = end;
+            end = s;
+          }
+
+          if (st._startClamp && start < 0) {
+            end = st.ratio < 0 ? _maxScroll() : st.end / st.ratio;
+            offset = end - st.end;
+            start = 0;
+          } else if (st.ratio < 0 || st._endClamp && end >= _maxScroll()) {
+            end = _maxScroll();
+            start = st.ratio < 0 ? 0 : st.ratio > 1 ? 0 : end - (end - st.start) / st.ratio;
+            offset = (end - start) * st.ratio - (st.end - st.start);
+          }
+
+          st.offset = offset || 0.0001; // we assign at least a tiny value because we check in the onUpdate for .offset being set in order to apply values.
+
+          st.pins.length = st.pins.offset = 0;
+          st.setPositions(start, end, true); // note: another way of getting only the amount of offset traveled for a certain ratio is: distanceBetweenStartAndEnd * (1 / ratio - 1)
+        });
+        adjustParallaxPosition(ScrollTrigger.sort());
+      }
+
+      tracker.reset();
+    },
+        addOnRefresh = function addOnRefresh() {
+      return ScrollTrigger.addEventListener("refresh", onRefresh);
+    },
+        restoreEffects = function restoreEffects() {
+      return effects && effects.forEach(function (st) {
+        return st.vars.onRefresh(st);
+      });
+    },
+        revertEffects = function revertEffects() {
+      effects && effects.forEach(function (st) {
+        return st.vars.onRefreshInit(st);
+      });
+      return restoreEffects;
+    },
+        effectValueGetter = function effectValueGetter(name, value, index, el) {
+      return function () {
+        var v = typeof value === "function" ? value(index, el) : value;
+        v || v === 0 || (v = el.getAttribute("data-" + effectsPrefix + name) || (name === "speed" ? 1 : 0));
+        el.setAttribute("data-" + effectsPrefix + name, v);
+        var clamp = (v + "").substr(0, 6) === "clamp(";
+        return {
+          clamp: clamp,
+          value: clamp ? v.substr(6, v.length - 7) : v
+        };
+      };
+    },
+        createEffect = function createEffect(el, speed, lag, index, effectsPadding) {
+      effectsPadding = (typeof effectsPadding === "function" ? effectsPadding(index, el) : effectsPadding) || 0;
+
+      var getSpeed = effectValueGetter("speed", speed, index, el),
+          getLag = effectValueGetter("lag", lag, index, el),
+          startY = gsap.getProperty(el, "y"),
+          cache = el._gsap,
+          ratio,
+          st,
+          autoSpeed,
+          scrub,
+          progressOffset,
+          yOffset,
+          pins = [],
+          initDynamicValues = function initDynamicValues() {
+        speed = getSpeed();
+        lag = parseFloat(getLag().value);
+        ratio = parseFloat(speed.value) || 1;
+        autoSpeed = speed.value === "auto";
+        progressOffset = autoSpeed || st && st._startClamp && st.start <= 0 || pins.offset ? 0 : st && st._endClamp && st.end === _maxScroll() ? 1 : 0.5;
+        scrub && scrub.kill();
+        scrub = lag && gsap.to(el, {
+          ease: _expo,
+          overwrite: false,
+          y: "+=0",
+          duration: lag
+        });
+
+        if (st) {
+          st.ratio = ratio;
+          st.autoSpeed = autoSpeed;
+        }
+      },
+          revert = function revert() {
+        cache.y = startY + "px";
+        cache.renderTransform(1);
+        initDynamicValues();
+      },
+          markers = [],
+          change = 0,
+          updateChange = function updateChange(self) {
+        if (autoSpeed) {
+          revert();
+
+          var auto = _autoDistance(el, _clamp(0, 1, -self.start / (self.end - self.start)));
+
+          change = auto.change;
+          yOffset = auto.offset;
+        } else {
+          yOffset = pins.offset || 0;
+          change = (self.end - self.start - yOffset) * (1 - ratio);
+        }
+
+        pins.forEach(function (p) {
+          return change -= p.distance * (1 - ratio);
+        });
+        self.offset = change || 0.001;
+        self.vars.onUpdate(self);
+        scrub && scrub.progress(1);
+      };
+
+      initDynamicValues();
+
+      if (ratio !== 1 || autoSpeed || scrub) {
+        st = ScrollTrigger.create({
+          trigger: autoSpeed ? el.parentNode : el,
+          start: function start() {
+            return speed.clamp ? "clamp(top bottom+=" + effectsPadding + ")" : "top bottom+=" + effectsPadding;
+          },
+          end: function end() {
+            return speed.value < 0 ? "max" : speed.clamp ? "clamp(bottom top-=" + effectsPadding + ")" : "bottom top-=" + effectsPadding;
+          },
+          scroller: wrapper,
+          scrub: true,
+          refreshPriority: -999,
+          // must update AFTER any other ScrollTrigger pins
+          onRefreshInit: revert,
+          onRefresh: updateChange,
+          onKill: function onKill(self) {
+            var i = effects.indexOf(self);
+            i >= 0 && effects.splice(i, 1);
+            revert();
+          },
+          onUpdate: function onUpdate(self) {
+            var y = startY + change * (self.progress - progressOffset),
+                i = pins.length,
+                extraY = 0,
+                pin,
+                scrollY,
+                end;
+
+            if (self.offset) {
+              // wait until the effects are adjusted.
+              if (i) {
+                // pinning must be handled in a special way because when pinned, slope changes to 1.
+                scrollY = -currentY; // -scroll.y;
+
+                end = self.end;
+
+                while (i--) {
+                  pin = pins[i];
+
+                  if (pin.trig.isActive || scrollY >= pin.start && scrollY <= pin.end) {
+                    // currently pinned so no need to set anything
+                    if (scrub) {
+                      pin.trig.progress += pin.trig.direction < 0 ? 0.001 : -0.001; // just to make absolutely sure that it renders (if the progress didn't change, it'll skip)
+
+                      pin.trig.update(0, 0, 1);
+                      scrub.resetTo("y", parseFloat(cache.y), -delta, true);
+                      startupPhase && scrub.progress(1);
+                    }
+
+                    return;
+                  }
+
+                  scrollY > pin.end && (extraY += pin.distance);
+                  end -= pin.distance;
+                }
+
+                y = startY + extraY + change * ((gsap.utils.clamp(self.start, self.end, scrollY) - self.start - extraY) / (end - self.start) - progressOffset);
+              }
+
+              markers.length && !autoSpeed && markers.forEach(function (setter) {
+                return setter(y - extraY);
+              });
+              y = _round(y + yOffset);
+
+              if (scrub) {
+                scrub.resetTo("y", y, -delta, true);
+                startupPhase && scrub.progress(1);
+              } else {
+                cache.y = y + "px";
+                cache.renderTransform(1);
+              }
+            }
+          }
+        });
+        updateChange(st);
+        gsap.core.getCache(st.trigger).stRevert = revertEffects; // if user calls ScrollSmoother.create() with effects and THEN creates a ScrollTrigger on the same trigger element, the effect would throw off the start/end positions thus we needed a way to revert things when creating a new ScrollTrigger in that scenario, so we use this stRevert property of the GSCache inside ScrollTrigger.
+
+        st.startY = startY;
+        st.pins = pins;
+        st.markers = markers;
+        st.ratio = ratio;
+        st.autoSpeed = autoSpeed;
+        el.style.willChange = "transform";
+      }
+
+      return st;
+    };
+
+    addOnRefresh();
+    ScrollTrigger.addEventListener("killAll", addOnRefresh);
+    gsap.delayedCall(0.5, function () {
+      return startupPhase = 0;
+    });
+    this.scrollTop = scrollTop;
+
+    this.scrollTo = function (target, smooth, position) {
+      var p = gsap.utils.clamp(0, _maxScroll(), isNaN(target) ? _this.offset(target, position, !!smooth && !paused) : +target);
+      !smooth ? scrollTop(p) : paused ? gsap.to(_this, {
+        duration: smoothDuration,
+        scrollTop: p,
+        overwrite: "auto",
+        ease: _expo
+      }) : scrollFunc(p);
+    };
+
+    this.offset = function (target, position, ignoreSpeed) {
+      target = _toArray(target)[0];
+      var cssText = target.style.cssText,
+          // because if there's an effect applied, we revert(). We need to restore.
+      st = ScrollTrigger.create({
+        trigger: target,
+        start: position || "top top"
+      }),
+          y;
+
+      if (effects) {
+        startupPhase ? ScrollTrigger.refresh() : adjustParallaxPosition([st], true); // all the effects need to go through the initial full refresh() so that all the pins and ratios and offsets are set up. That's why we do a full refresh() if it's during the startupPhase.
+      }
+
+      y = st.start / (ignoreSpeed ? speed : 1);
+      st.kill(false);
+      target.style.cssText = cssText;
+      gsap.core.getCache(target).uncache = 1;
+      return y;
+    };
+
+    function refreshHeight() {
+      height = content.clientHeight;
+      content.style.overflow = "visible";
+      _body.style.height = _win.innerHeight + (height - _win.innerHeight) / speed + "px";
+      return height - _win.innerHeight;
+    }
+
+    this.content = function (element) {
+      if (arguments.length) {
+        var newContent = _toArray(element || "#smooth-content")[0] || console.warn("ScrollSmoother needs a valid content element.") || _body.children[0];
+
+        if (newContent !== content) {
+          content = newContent;
+          contentCSS = content.getAttribute("style") || "";
+          resizeObserver && resizeObserver.observe(content);
+          gsap.set(content, {
+            overflow: "visible",
+            width: "100%",
+            boxSizing: "border-box",
+            y: "+=0"
+          });
+          smoothDuration || gsap.set(content, {
+            clearProps: "transform"
+          });
+        }
+
+        return this;
+      }
+
+      return content;
+    };
+
+    this.wrapper = function (element) {
+      if (arguments.length) {
+        wrapper = _toArray(element || "#smooth-wrapper")[0] || _wrap(content);
+        wrapperCSS = wrapper.getAttribute("style") || "";
+        refreshHeight();
+        gsap.set(wrapper, smoothDuration ? {
+          overflow: "hidden",
+          position: "fixed",
+          height: "100%",
+          width: "100%",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0
+        } : {
+          overflow: "visible",
+          position: "relative",
+          width: "100%",
+          height: "auto",
+          top: "auto",
+          bottom: "auto",
+          left: "auto",
+          right: "auto"
+        });
+        return this;
+      }
+
+      return wrapper;
+    };
+
+    this.effects = function (targets, config) {
+      var _effects;
+
+      effects || (effects = []);
+
+      if (!targets) {
+        return effects.slice(0);
+      }
+
+      targets = _toArray(targets);
+      targets.forEach(function (target) {
+        var i = effects.length;
+
+        while (i--) {
+          effects[i].trigger === target && effects[i].kill(); // will automatically splice() it from the effects Array in the onKill
+        }
+      });
+      config = config || {};
+      var _config = config,
+          speed = _config.speed,
+          lag = _config.lag,
+          effectsPadding = _config.effectsPadding,
+          effectsToAdd = [],
+          i,
+          st;
+
+      for (i = 0; i < targets.length; i++) {
+        st = createEffect(targets[i], speed, lag, i, effectsPadding);
+        st && effectsToAdd.push(st);
+      }
+
+      (_effects = effects).push.apply(_effects, effectsToAdd);
+
+      config.refresh !== false && ScrollTrigger.refresh(); // certain effects require a refresh to work properly
+
+      return effectsToAdd;
+    };
+
+    this.sections = function (targets, config) {
+      var _sections;
+
+      sections || (sections = []);
+
+      if (!targets) {
+        return sections.slice(0);
+      }
+
+      var newSections = _toArray(targets).map(function (el) {
+        return ScrollTrigger.create({
+          trigger: el,
+          start: "top 120%",
+          end: "bottom -20%",
+          onToggle: function onToggle(self) {
+            el.style.opacity = self.isActive ? "1" : "0";
+            el.style.pointerEvents = self.isActive ? "all" : "none";
+          }
+        });
+      });
+
+      config && config.add ? (_sections = sections).push.apply(_sections, newSections) : sections = newSections.slice(0);
+      return newSections;
+    };
+
+    this.content(vars.content);
+    this.wrapper(vars.wrapper);
+
+    this.render = function (y) {
+      return render(y || y === 0 ? y : currentY);
+    };
+
+    this.getVelocity = function () {
+      return tracker.getVelocity(-currentY);
+    };
+
+    ScrollTrigger.scrollerProxy(wrapper, {
+      scrollTop: scrollTop,
+      scrollHeight: function scrollHeight() {
+        return refreshHeight() && _body.scrollHeight;
+      },
+      fixedMarkers: vars.fixedMarkers !== false && !!smoothDuration,
+      content: content,
+      getBoundingClientRect: function getBoundingClientRect() {
+        return {
+          top: 0,
+          left: 0,
+          width: _win.innerWidth,
+          height: _win.innerHeight
+        };
+      }
+    });
+    ScrollTrigger.defaults({
+      scroller: wrapper
+    });
+    var existingScrollTriggers = ScrollTrigger.getAll().filter(function (st) {
+      return st.scroller === _win || st.scroller === wrapper;
+    });
+    existingScrollTriggers.forEach(function (st) {
+      return st.revert(true, true);
+    }); // in case it's in an environment like React where child components that have ScrollTriggers instantiate BEFORE the parent that does ScrollSmoother.create(...);
+
+    mainST = ScrollTrigger.create({
+      animation: gsap.fromTo(scroll, {
+        y: function y() {
+          allowUpdates = 0;
+          return 0;
+        }
+      }, {
+        y: function y() {
+          allowUpdates = 1;
+          return -refreshHeight();
+        },
+        immediateRender: false,
+        ease: "none",
+        data: "ScrollSmoother",
+        duration: 100,
+        // for added precision
+        onUpdate: function onUpdate() {
+          if (allowUpdates) {
+            // skip when it's the "from" part of the tween (setting the startAt)
+            var force = isProxyScrolling;
+
+            if (force) {
+              killScrub(mainST);
+              scroll.y = currentY;
+            }
+
+            render(scroll.y, force);
+            updateVelocity();
+            _onUpdate && !paused && _onUpdate(self);
+          }
+        }
+      }),
+      onRefreshInit: function onRefreshInit(self) {
+        if (ScrollSmoother.isRefreshing) {
+          // gets called on the onRefresh() when we do self.setPositions(...) in which case we should skip this
+          return;
+        }
+
+        ScrollSmoother.isRefreshing = true;
+
+        if (effects) {
+          var _pins = ScrollTrigger.getAll().filter(function (st) {
+            return !!st.pin;
+          });
+
+          effects.forEach(function (st) {
+            if (!st.vars.pinnedContainer) {
+              _pins.forEach(function (pinST) {
+                if (pinST.pin.contains(st.trigger)) {
+                  var v = st.vars;
+                  v.pinnedContainer = pinST.pin;
+                  st.vars = null; // otherwise, it'll self.kill(), triggering the onKill()
+
+                  st.init(v, st.animation);
+                }
+              });
+            }
+          });
+        }
+
+        var scrub = self.getTween();
+        recordedRefreshScrub = scrub && scrub._end > scrub._dp._time; // don't use scrub.progress() < 1 because we may have called killScrub() recently in which case it'll report progress() as 1 when we were actually in the middle of a scrub. That's why we tap into the _end instead.
+
+        recordedRefreshScroll = currentY;
+        scroll.y = 0;
+
+        if (smoothDuration) {
+          ScrollTrigger.isTouch === 1 && (wrapper.style.position = "absolute"); // Safari 16 has a major bug - if you set wrapper.scrollTop to 0 (even if it's already 0), it blocks the whole page from scrolling page non-scrollable! See https://bugs.webkit.org/show_bug.cgi?id=245300 and https://codepen.io/GreenSock/pen/YzLZVOz. Originally we set pointer-events: none on the wrapper temporarily, and set it back to all after setting scrollTop to 0, but that could cause mouseenter/mouseleave/etc. events to fire too, so we opted to set the position to absolute and then back to fixed after setting scrollTop.
+
+          wrapper.scrollTop = 0; // set wrapper.scrollTop to 0 because in some very rare situations, the browser will auto-set that, like if there's a hash in the link or changing focus to an off-screen input
+
+          ScrollTrigger.isTouch === 1 && (wrapper.style.position = "fixed");
+        }
+      },
+      onRefresh: function onRefresh(self) {
+        self.animation.invalidate(); // because pinnedContainers may have been found in ScrollTrigger's _refreshAll() that extend the height. Without this, it may prevent the user from being able to scroll all the way down.
+
+        self.setPositions(self.start, refreshHeight() / speed);
+        recordedRefreshScrub || killScrub(self);
+        scroll.y = -scrollFunc() * speed; // in 3.11.1, we shifted to forcing the scroll position to 0 during the entire refreshAll() in ScrollTrigger and then restored the scroll position AFTER everything had been updated, thus we should always make these adjustments AFTER a full refresh rather than putting it in the onRefresh() of the individual mainST ScrollTrigger which would fire before the scroll position was restored.
+
+        render(scroll.y);
+
+        if (!startupPhase) {
+          recordedRefreshScrub && (isProxyScrolling = false); // otherwise, we lose any in-progress scrub. When we set the progress(), it fires the onUpdate() which sets the scroll position immediately (jumps ahead if isProxyScrolling is true). See https://gsap.com/community/forums/topic/37515-dynamic-scrolltrigger-with-pin-inside-a-scrollsmoother/
+
+          self.animation.progress(gsap.utils.clamp(0, 1, recordedRefreshScroll / speed / -self.end));
+        }
+
+        if (recordedRefreshScrub) {
+          // we need to trigger the scrub to happen again
+          self.progress -= 0.001;
+          self.update();
+        }
+
+        ScrollSmoother.isRefreshing = false;
+      },
+      id: "ScrollSmoother",
+      scroller: _win,
+      invalidateOnRefresh: true,
+      start: 0,
+      refreshPriority: -9999,
+      // because all other pins, etc. should be calculated first before this figures out the height of the body. BUT this should also update FIRST so that the scroll position on the proxy is up-to-date when all the ScrollTriggers calculate their progress! -9999 is a special number that ScrollTrigger looks for to handle in this way.
+      end: function end() {
+        return refreshHeight() / speed;
+      },
+      onScrubComplete: function onScrubComplete() {
+        tracker.reset();
+        onStop && onStop(_this);
+      },
+      scrub: smoothDuration || true
+    });
+
+    this.smooth = function (value) {
+      if (arguments.length) {
+        smoothDuration = value || 0;
+        speed = smoothDuration && +vars.speed || 1;
+        mainST.scrubDuration(value);
+      }
+
+      return mainST.getTween() ? mainST.getTween().duration() : 0;
+    };
+
+    mainST.getTween() && (mainST.getTween().vars.ease = vars.ease || _expo);
+    this.scrollTrigger = mainST;
+    vars.effects && this.effects(vars.effects === true ? "[data-" + effectsPrefix + "speed], [data-" + effectsPrefix + "lag]" : vars.effects, {
+      effectsPadding: vars.effectsPadding,
+      refresh: false
+    });
+    vars.sections && this.sections(vars.sections === true ? "[data-section]" : vars.sections);
+    existingScrollTriggers.forEach(function (st) {
+      st.vars.scroller = wrapper;
+      st.revert(false, true);
+      st.init(st.vars, st.animation);
+    });
+
+    this.paused = function (value, allowNestedScroll) {
+      if (arguments.length) {
+        if (!!paused !== value) {
+          if (value) {
+            // pause
+            mainST.getTween() && mainST.getTween().pause();
+            scrollFunc(-currentY / speed);
+            tracker.reset();
+            pausedNormalizer = ScrollTrigger.normalizeScroll();
+            pausedNormalizer && pausedNormalizer.disable(); // otherwise the normalizer would try to scroll the page on things like wheel events.
+
+            paused = ScrollTrigger.observe({
+              preventDefault: true,
+              type: "wheel,touch,scroll",
+              debounce: false,
+              allowClicks: true,
+              onChangeY: function onChangeY() {
+                return scrollTop(-currentY);
+              } // refuse to scroll
+
+            });
+            paused.nested = _inputObserver(_docEl, "wheel,touch,scroll", true, allowNestedScroll !== false); // allow nested scrolling, like modals
+          } else {
+            // resume
+            paused.nested.kill();
+            paused.kill();
+            paused = 0;
+            pausedNormalizer && pausedNormalizer.enable();
+            mainST.progress = (-currentY / speed - mainST.start) / (mainST.end - mainST.start);
+            killScrub(mainST);
+          }
+        }
+
+        return this;
+      }
+
+      return !!paused;
+    };
+
+    this.kill = this.revert = function () {
+      _this.paused(false);
+
+      killScrub(mainST);
+      mainST.kill();
+      var triggers = (effects || []).concat(sections || []),
+          i = triggers.length;
+
+      while (i--) {
+        // make sure we go backwards because the onKill() will effects.splice(index, 1) and we don't want to skip
+        triggers[i].kill();
+      }
+
+      ScrollTrigger.scrollerProxy(wrapper);
+      ScrollTrigger.removeEventListener("killAll", addOnRefresh);
+      ScrollTrigger.removeEventListener("refresh", onRefresh);
+      wrapper.style.cssText = wrapperCSS;
+      content.style.cssText = contentCSS;
+      var defaults = ScrollTrigger.defaults({});
+      defaults && defaults.scroller === wrapper && ScrollTrigger.defaults({
+        scroller: _win
+      });
+      _this.normalizer && ScrollTrigger.normalizeScroll(false);
+      clearInterval(intervalID);
+      _mainInstance = null;
+      resizeObserver && resizeObserver.disconnect();
+
+      _body.style.removeProperty("height");
+
+      _win.removeEventListener("focusin", _onFocusIn);
+    };
+
+    this.refresh = function (soft, force) {
+      return mainST.refresh(soft, force);
+    };
+
+    if (normalizeScroll) {
+      this.normalizer = ScrollTrigger.normalizeScroll(normalizeScroll === true ? {
+        debounce: true,
+        content: !smoothDuration && content
+      } : normalizeScroll);
+    }
+
+    ScrollTrigger.config(vars); // in case user passes in ignoreMobileResize for example
+    // ("overscrollBehavior" in _win.getComputedStyle(_body)) && gsap.set([_body, _docEl], {overscrollBehavior: "none"}); // this caused Safari 17+ not to scroll the entire page (bug in Safari), so let people set this in the CSS instead if they want.
+
+    "scrollBehavior" in _win.getComputedStyle(_body) && gsap.set([_body, _docEl], {
+      scrollBehavior: "auto"
+    }); // if the user hits the tab key (or whatever) to shift focus to an element that's off-screen, center that element.
+
+    _win.addEventListener("focusin", _onFocusIn);
+
+    intervalID = setInterval(updateVelocity, 250);
+    _doc.readyState === "loading" || requestAnimationFrame(function () {
+      return ScrollTrigger.refresh();
+    });
+  }
+
+  ScrollSmoother.register = function register(core) {
+    if (!_coreInitted) {
+      gsap = core || _getGSAP();
+
+      if (_windowExists() && window.document) {
+        _win = window;
+        _doc = document;
+        _docEl = _doc.documentElement;
+        _body = _doc.body;
+      }
+
+      if (gsap) {
+        _toArray = gsap.utils.toArray;
+        _clamp = gsap.utils.clamp;
+        _expo = gsap.parseEase("expo");
+
+        _context = gsap.core.context || function () {};
+
+        ScrollTrigger = gsap.core.globals().ScrollTrigger;
+        gsap.core.globals("ScrollSmoother", ScrollSmoother); // must register the global manually because in Internet Explorer, functions (classes) don't have a "name" property.
+
+        if (_body && ScrollTrigger) {
+          _onResizeDelayedCall = gsap.delayedCall(0.2, function () {
+            return ScrollTrigger.isRefreshing || _mainInstance && _mainInstance.refresh();
+          }).pause();
+          _root = [_win, _doc, _docEl, _body];
+          _getVelocityProp = ScrollTrigger.core._getVelocityProp;
+          _inputObserver = ScrollTrigger.core._inputObserver;
+          ScrollSmoother.refresh = ScrollTrigger.refresh;
+          _coreInitted = 1;
+        }
+      }
+    }
+
+    return _coreInitted;
+  };
+
+  _createClass(ScrollSmoother, [{
+    key: "progress",
+    get: function get() {
+      return this.scrollTrigger ? this.scrollTrigger.animation._time / 100 : 0;
+    }
+  }]);
+
+  return ScrollSmoother;
+}();
+ScrollSmoother.version = "3.13.0";
+
+ScrollSmoother.create = function (vars) {
+  return _mainInstance && vars && _mainInstance.content() === _toArray(vars.content)[0] ? _mainInstance : new ScrollSmoother(vars);
+};
+
+ScrollSmoother.get = function () {
+  return _mainInstance;
+};
+
+_getGSAP() && gsap.registerPlugin(ScrollSmoother);
 
 
 /***/ }),
@@ -12496,6 +15055,332 @@ ScrollTrigger.core = {
   }
 };
 _getGSAP() && gsap.registerPlugin(ScrollTrigger);
+
+
+/***/ }),
+
+/***/ "./node_modules/gsap/SplitText.js":
+/*!****************************************!*\
+  !*** ./node_modules/gsap/SplitText.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   SplitText: () => (/* binding */ SplitText),
+/* harmony export */   "default": () => (/* binding */ SplitText)
+/* harmony export */ });
+/*!
+ * SplitText 3.13.0
+ * https://gsap.com
+ *
+ * @license Copyright 2025, GreenSock. All rights reserved. Subject to the terms at https://gsap.com/standard-license.
+ * @author: Jack Doyle
+ */
+
+let gsap, _fonts, _coreInitted, _initIfNecessary = () => _coreInitted || SplitText.register(window.gsap), _charSegmenter = typeof Intl !== "undefined" ? new Intl.Segmenter() : 0, _toArray = (r) => typeof r === "string" ? _toArray(document.querySelectorAll(r)) : "length" in r ? Array.from(r) : [r], _elements = (targets) => _toArray(targets).filter((e) => e instanceof HTMLElement), _emptyArray = [], _context = function() {
+}, _spacesRegEx = /\s+/g, _emojiSafeRegEx = new RegExp("\\p{RI}\\p{RI}|\\p{Emoji}(\\p{EMod}|\\u{FE0F}\\u{20E3}?|[\\u{E0020}-\\u{E007E}]+\\u{E007F})?(\\u{200D}\\p{Emoji}(\\p{EMod}|\\u{FE0F}\\u{20E3}?|[\\u{E0020}-\\u{E007E}]+\\u{E007F})?)*|.", "gu"), _emptyBounds = { left: 0, top: 0, width: 0, height: 0 }, _stretchToFitSpecialChars = (collection, specialCharsRegEx) => {
+  if (specialCharsRegEx) {
+    let charsFound = new Set(collection.join("").match(specialCharsRegEx) || _emptyArray), i = collection.length, slots, word, char, combined;
+    if (charsFound.size) {
+      while (--i > -1) {
+        word = collection[i];
+        for (char of charsFound) {
+          if (char.startsWith(word) && char.length > word.length) {
+            slots = 0;
+            combined = word;
+            while (char.startsWith(combined += collection[i + ++slots]) && combined.length < char.length) {
+            }
+            if (slots && combined.length === char.length) {
+              collection[i] = char;
+              collection.splice(i + 1, slots);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  return collection;
+}, _disallowInline = (element) => window.getComputedStyle(element).display === "inline" && (element.style.display = "inline-block"), _insertNodeBefore = (newChild, parent, existingChild) => parent.insertBefore(typeof newChild === "string" ? document.createTextNode(newChild) : newChild, existingChild), _getWrapper = (type, config, collection) => {
+  let className = config[type + "sClass"] || "", { tag = "div", aria = "auto", propIndex = false } = config, display = type === "line" ? "block" : "inline-block", incrementClass = className.indexOf("++") > -1, wrapper = (text) => {
+    let el = document.createElement(tag), i = collection.length + 1;
+    className && (el.className = className + (incrementClass ? " " + className + i : ""));
+    propIndex && el.style.setProperty("--" + type, i + "");
+    aria !== "none" && el.setAttribute("aria-hidden", "true");
+    if (tag !== "span") {
+      el.style.position = "relative";
+      el.style.display = display;
+    }
+    el.textContent = text;
+    collection.push(el);
+    return el;
+  };
+  incrementClass && (className = className.replace("++", ""));
+  wrapper.collection = collection;
+  return wrapper;
+}, _getLineWrapper = (element, nodes, config, collection) => {
+  let lineWrapper = _getWrapper("line", config, collection), textAlign = window.getComputedStyle(element).textAlign || "left";
+  return (startIndex, endIndex) => {
+    let newLine = lineWrapper("");
+    newLine.style.textAlign = textAlign;
+    element.insertBefore(newLine, nodes[startIndex]);
+    for (; startIndex < endIndex; startIndex++) {
+      newLine.appendChild(nodes[startIndex]);
+    }
+    newLine.normalize();
+  };
+}, _splitWordsAndCharsRecursively = (element, config, wordWrapper, charWrapper, prepForCharsOnly, deepSlice, ignore, charSplitRegEx, specialCharsRegEx, isNested) => {
+  var _a;
+  let nodes = Array.from(element.childNodes), i = 0, { wordDelimiter, reduceWhiteSpace = true, prepareText } = config, elementBounds = element.getBoundingClientRect(), lastBounds = elementBounds, isPreformatted = !reduceWhiteSpace && window.getComputedStyle(element).whiteSpace.substring(0, 3) === "pre", ignoredPreviousSibling = 0, wordsCollection = wordWrapper.collection, wordDelimIsNotSpace, wordDelimString, wordDelimSplitter, curNode, words, curWordEl, startsWithSpace, endsWithSpace, j, bounds, curWordChars, clonedNode, curSubNode, tempSubNode, curTextContent, wordText, lastWordText, k;
+  if (typeof wordDelimiter === "object") {
+    wordDelimSplitter = wordDelimiter.delimiter || wordDelimiter;
+    wordDelimString = wordDelimiter.replaceWith || "";
+  } else {
+    wordDelimString = wordDelimiter === "" ? "" : wordDelimiter || " ";
+  }
+  wordDelimIsNotSpace = wordDelimString !== " ";
+  for (; i < nodes.length; i++) {
+    curNode = nodes[i];
+    if (curNode.nodeType === 3) {
+      curTextContent = curNode.textContent || "";
+      if (reduceWhiteSpace) {
+        curTextContent = curTextContent.replace(_spacesRegEx, " ");
+      } else if (isPreformatted) {
+        curTextContent = curTextContent.replace(/\n/g, wordDelimString + "\n");
+      }
+      prepareText && (curTextContent = prepareText(curTextContent, element));
+      curNode.textContent = curTextContent;
+      words = wordDelimString || wordDelimSplitter ? curTextContent.split(wordDelimSplitter || wordDelimString) : curTextContent.match(charSplitRegEx) || _emptyArray;
+      lastWordText = words[words.length - 1];
+      endsWithSpace = wordDelimIsNotSpace ? lastWordText.slice(-1) === " " : !lastWordText;
+      lastWordText || words.pop();
+      lastBounds = elementBounds;
+      startsWithSpace = wordDelimIsNotSpace ? words[0].charAt(0) === " " : !words[0];
+      startsWithSpace && _insertNodeBefore(" ", element, curNode);
+      words[0] || words.shift();
+      _stretchToFitSpecialChars(words, specialCharsRegEx);
+      deepSlice && isNested || (curNode.textContent = "");
+      for (j = 1; j <= words.length; j++) {
+        wordText = words[j - 1];
+        if (!reduceWhiteSpace && isPreformatted && wordText.charAt(0) === "\n") {
+          (_a = curNode.previousSibling) == null ? void 0 : _a.remove();
+          _insertNodeBefore(document.createElement("br"), element, curNode);
+          wordText = wordText.slice(1);
+        }
+        if (!reduceWhiteSpace && wordText === "") {
+          _insertNodeBefore(wordDelimString, element, curNode);
+        } else if (wordText === " ") {
+          element.insertBefore(document.createTextNode(" "), curNode);
+        } else {
+          wordDelimIsNotSpace && wordText.charAt(0) === " " && _insertNodeBefore(" ", element, curNode);
+          if (ignoredPreviousSibling && j === 1 && !startsWithSpace && wordsCollection.indexOf(ignoredPreviousSibling.parentNode) > -1) {
+            curWordEl = wordsCollection[wordsCollection.length - 1];
+            curWordEl.appendChild(document.createTextNode(charWrapper ? "" : wordText));
+          } else {
+            curWordEl = wordWrapper(charWrapper ? "" : wordText);
+            _insertNodeBefore(curWordEl, element, curNode);
+            ignoredPreviousSibling && j === 1 && !startsWithSpace && curWordEl.insertBefore(ignoredPreviousSibling, curWordEl.firstChild);
+          }
+          if (charWrapper) {
+            curWordChars = _charSegmenter ? _stretchToFitSpecialChars([..._charSegmenter.segment(wordText)].map((s) => s.segment), specialCharsRegEx) : wordText.match(charSplitRegEx) || _emptyArray;
+            for (k = 0; k < curWordChars.length; k++) {
+              curWordEl.appendChild(curWordChars[k] === " " ? document.createTextNode(" ") : charWrapper(curWordChars[k]));
+            }
+          }
+          if (deepSlice && isNested) {
+            curTextContent = curNode.textContent = curTextContent.substring(wordText.length + 1, curTextContent.length);
+            bounds = curWordEl.getBoundingClientRect();
+            if (bounds.top > lastBounds.top && bounds.left <= lastBounds.left) {
+              clonedNode = element.cloneNode();
+              curSubNode = element.childNodes[0];
+              while (curSubNode && curSubNode !== curWordEl) {
+                tempSubNode = curSubNode;
+                curSubNode = curSubNode.nextSibling;
+                clonedNode.appendChild(tempSubNode);
+              }
+              element.parentNode.insertBefore(clonedNode, element);
+              prepForCharsOnly && _disallowInline(clonedNode);
+            }
+            lastBounds = bounds;
+          }
+          if (j < words.length || endsWithSpace) {
+            _insertNodeBefore(j >= words.length ? " " : wordDelimIsNotSpace && wordText.slice(-1) === " " ? " " + wordDelimString : wordDelimString, element, curNode);
+          }
+        }
+      }
+      element.removeChild(curNode);
+      ignoredPreviousSibling = 0;
+    } else if (curNode.nodeType === 1) {
+      if (ignore && ignore.indexOf(curNode) > -1) {
+        wordsCollection.indexOf(curNode.previousSibling) > -1 && wordsCollection[wordsCollection.length - 1].appendChild(curNode);
+        ignoredPreviousSibling = curNode;
+      } else {
+        _splitWordsAndCharsRecursively(curNode, config, wordWrapper, charWrapper, prepForCharsOnly, deepSlice, ignore, charSplitRegEx, specialCharsRegEx, true);
+        ignoredPreviousSibling = 0;
+      }
+      prepForCharsOnly && _disallowInline(curNode);
+    }
+  }
+};
+const _SplitText = class _SplitText {
+  constructor(elements, config) {
+    this.isSplit = false;
+    _initIfNecessary();
+    this.elements = _elements(elements);
+    this.chars = [];
+    this.words = [];
+    this.lines = [];
+    this.masks = [];
+    this.vars = config;
+    this._split = () => this.isSplit && this.split(this.vars);
+    let orig = [], timerId, checkWidths = () => {
+      let i = orig.length, o;
+      while (i--) {
+        o = orig[i];
+        let w = o.element.offsetWidth;
+        if (w !== o.width) {
+          o.width = w;
+          this._split();
+          return;
+        }
+      }
+    };
+    this._data = { orig, obs: typeof ResizeObserver !== "undefined" && new ResizeObserver(() => {
+      clearTimeout(timerId);
+      timerId = setTimeout(checkWidths, 200);
+    }) };
+    _context(this);
+    this.split(config);
+  }
+  split(config) {
+    this.isSplit && this.revert();
+    this.vars = config = config || this.vars || {};
+    let { type = "chars,words,lines", aria = "auto", deepSlice = true, smartWrap, onSplit, autoSplit = false, specialChars, mask } = this.vars, splitLines = type.indexOf("lines") > -1, splitCharacters = type.indexOf("chars") > -1, splitWords = type.indexOf("words") > -1, onlySplitCharacters = splitCharacters && !splitWords && !splitLines, specialCharsRegEx = specialChars && ("push" in specialChars ? new RegExp("(?:" + specialChars.join("|") + ")", "gu") : specialChars), finalCharSplitRegEx = specialCharsRegEx ? new RegExp(specialCharsRegEx.source + "|" + _emojiSafeRegEx.source, "gu") : _emojiSafeRegEx, ignore = !!config.ignore && _elements(config.ignore), { orig, animTime, obs } = this._data, onSplitResult;
+    if (splitCharacters || splitWords || splitLines) {
+      this.elements.forEach((element, index) => {
+        orig[index] = {
+          element,
+          html: element.innerHTML,
+          ariaL: element.getAttribute("aria-label"),
+          ariaH: element.getAttribute("aria-hidden")
+        };
+        aria === "auto" ? element.setAttribute("aria-label", (element.textContent || "").trim()) : aria === "hidden" && element.setAttribute("aria-hidden", "true");
+        let chars = [], words = [], lines = [], charWrapper = splitCharacters ? _getWrapper("char", config, chars) : null, wordWrapper = _getWrapper("word", config, words), i, curWord, smartWrapSpan, nextSibling;
+        _splitWordsAndCharsRecursively(element, config, wordWrapper, charWrapper, onlySplitCharacters, deepSlice && (splitLines || onlySplitCharacters), ignore, finalCharSplitRegEx, specialCharsRegEx, false);
+        if (splitLines) {
+          let nodes = _toArray(element.childNodes), wrapLine = _getLineWrapper(element, nodes, config, lines), curNode, toRemove = [], lineStartIndex = 0, allBounds = nodes.map((n) => n.nodeType === 1 ? n.getBoundingClientRect() : _emptyBounds), lastBounds = _emptyBounds;
+          for (i = 0; i < nodes.length; i++) {
+            curNode = nodes[i];
+            if (curNode.nodeType === 1) {
+              if (curNode.nodeName === "BR") {
+                toRemove.push(curNode);
+                wrapLine(lineStartIndex, i + 1);
+                lineStartIndex = i + 1;
+                lastBounds = allBounds[lineStartIndex];
+              } else {
+                if (i && allBounds[i].top > lastBounds.top && allBounds[i].left <= lastBounds.left) {
+                  wrapLine(lineStartIndex, i);
+                  lineStartIndex = i;
+                }
+                lastBounds = allBounds[i];
+              }
+            }
+          }
+          lineStartIndex < i && wrapLine(lineStartIndex, i);
+          toRemove.forEach((el) => {
+            var _a;
+            return (_a = el.parentNode) == null ? void 0 : _a.removeChild(el);
+          });
+        }
+        if (!splitWords) {
+          for (i = 0; i < words.length; i++) {
+            curWord = words[i];
+            if (splitCharacters || !curWord.nextSibling || curWord.nextSibling.nodeType !== 3) {
+              if (smartWrap && !splitLines) {
+                smartWrapSpan = document.createElement("span");
+                smartWrapSpan.style.whiteSpace = "nowrap";
+                while (curWord.firstChild) {
+                  smartWrapSpan.appendChild(curWord.firstChild);
+                }
+                curWord.replaceWith(smartWrapSpan);
+              } else {
+                curWord.replaceWith(...curWord.childNodes);
+              }
+            } else {
+              nextSibling = curWord.nextSibling;
+              if (nextSibling && nextSibling.nodeType === 3) {
+                nextSibling.textContent = (curWord.textContent || "") + (nextSibling.textContent || "");
+                curWord.remove();
+              }
+            }
+          }
+          words.length = 0;
+          element.normalize();
+        }
+        this.lines.push(...lines);
+        this.words.push(...words);
+        this.chars.push(...chars);
+      });
+      mask && this[mask] && this.masks.push(...this[mask].map((el) => {
+        let maskEl = el.cloneNode();
+        el.replaceWith(maskEl);
+        maskEl.appendChild(el);
+        el.className && (maskEl.className = el.className.replace(/(\b\w+\b)/g, "$1-mask"));
+        maskEl.style.overflow = "clip";
+        return maskEl;
+      }));
+    }
+    this.isSplit = true;
+    _fonts && (autoSplit ? _fonts.addEventListener("loadingdone", this._split) : _fonts.status === "loading" && console.warn("SplitText called before fonts loaded"));
+    if ((onSplitResult = onSplit && onSplit(this)) && onSplitResult.totalTime) {
+      this._data.anim = animTime ? onSplitResult.totalTime(animTime) : onSplitResult;
+    }
+    splitLines && autoSplit && this.elements.forEach((element, index) => {
+      orig[index].width = element.offsetWidth;
+      obs && obs.observe(element);
+    });
+    return this;
+  }
+  revert() {
+    var _a, _b;
+    let { orig, anim, obs } = this._data;
+    obs && obs.disconnect();
+    orig.forEach(({ element, html, ariaL, ariaH }) => {
+      element.innerHTML = html;
+      ariaL ? element.setAttribute("aria-label", ariaL) : element.removeAttribute("aria-label");
+      ariaH ? element.setAttribute("aria-hidden", ariaH) : element.removeAttribute("aria-hidden");
+    });
+    this.chars.length = this.words.length = this.lines.length = orig.length = this.masks.length = 0;
+    this.isSplit = false;
+    _fonts == null ? void 0 : _fonts.removeEventListener("loadingdone", this._split);
+    if (anim) {
+      this._data.animTime = anim.totalTime();
+      anim.revert();
+    }
+    (_b = (_a = this.vars).onRevert) == null ? void 0 : _b.call(_a, this);
+    return this;
+  }
+  static create(elements, config) {
+    return new _SplitText(elements, config);
+  }
+  static register(core) {
+    gsap = gsap || core || window.gsap;
+    if (gsap) {
+      _toArray = gsap.utils.toArray;
+      _context = gsap.core.context || _context;
+    }
+    if (!_coreInitted && window.innerWidth > 0) {
+      _fonts = document.fonts;
+      _coreInitted = true;
+    }
+  }
+};
+_SplitText.version = "3.13.0";
+let SplitText = _SplitText;
+
+
 
 
 /***/ }),
@@ -17134,6 +20019,446 @@ TweenMaxWithCSS = gsapWithCSS.core.Tween;
 
 /***/ }),
 
+/***/ "./node_modules/gsap/utils/matrix.js":
+/*!*******************************************!*\
+  !*** ./node_modules/gsap/utils/matrix.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Matrix2D: () => (/* binding */ Matrix2D),
+/* harmony export */   _getCTM: () => (/* binding */ _getCTM),
+/* harmony export */   _getDocScrollLeft: () => (/* binding */ _getDocScrollLeft),
+/* harmony export */   _getDocScrollTop: () => (/* binding */ _getDocScrollTop),
+/* harmony export */   _isFixed: () => (/* binding */ _isFixed),
+/* harmony export */   _setDoc: () => (/* binding */ _setDoc),
+/* harmony export */   getGlobalMatrix: () => (/* binding */ getGlobalMatrix)
+/* harmony export */ });
+/*!
+ * matrix 3.13.0
+ * https://gsap.com
+ *
+ * Copyright 2008-2025, GreenSock. All rights reserved.
+ * Subject to the terms at https://gsap.com/standard-license
+ * @author: Jack Doyle, jack@greensock.com
+*/
+
+/* eslint-disable */
+var _doc,
+    _win,
+    _docElement,
+    _body,
+    _divContainer,
+    _svgContainer,
+    _identityMatrix,
+    _gEl,
+    _transformProp = "transform",
+    _transformOriginProp = _transformProp + "Origin",
+    _hasOffsetBug,
+    _setDoc = function _setDoc(element) {
+  var doc = element.ownerDocument || element;
+
+  if (!(_transformProp in element.style) && "msTransform" in element.style) {
+    //to improve compatibility with old Microsoft browsers
+    _transformProp = "msTransform";
+    _transformOriginProp = _transformProp + "Origin";
+  }
+
+  while (doc.parentNode && (doc = doc.parentNode)) {}
+
+  _win = window;
+  _identityMatrix = new Matrix2D();
+
+  if (doc) {
+    _doc = doc;
+    _docElement = doc.documentElement;
+    _body = doc.body;
+    _gEl = _doc.createElementNS("http://www.w3.org/2000/svg", "g"); // prevent any existing CSS from transforming it
+
+    _gEl.style.transform = "none"; // now test for the offset reporting bug. Use feature detection instead of browser sniffing to make things more bulletproof and future-proof. Hopefully Safari will fix their bug soon.
+
+    var d1 = doc.createElement("div"),
+        d2 = doc.createElement("div"),
+        root = doc && (doc.body || doc.firstElementChild);
+
+    if (root && root.appendChild) {
+      root.appendChild(d1);
+      d1.appendChild(d2);
+      d1.setAttribute("style", "position:static;transform:translate3d(0,0,1px)");
+      _hasOffsetBug = d2.offsetParent !== d1;
+      root.removeChild(d1);
+    }
+  }
+
+  return doc;
+},
+    _forceNonZeroScale = function _forceNonZeroScale(e) {
+  // walks up the element's ancestors and finds any that had their scale set to 0 via GSAP, and changes them to 0.0001 to ensure that measurements work. Firefox has a bug that causes it to incorrectly report getBoundingClientRect() when scale is 0.
+  var a, cache;
+
+  while (e && e !== _body) {
+    cache = e._gsap;
+    cache && cache.uncache && cache.get(e, "x"); // force re-parsing of transforms if necessary
+
+    if (cache && !cache.scaleX && !cache.scaleY && cache.renderTransform) {
+      cache.scaleX = cache.scaleY = 1e-4;
+      cache.renderTransform(1, cache);
+      a ? a.push(cache) : a = [cache];
+    }
+
+    e = e.parentNode;
+  }
+
+  return a;
+},
+    // possible future addition: pass an element to _forceDisplay() and it'll walk up all its ancestors and make sure anything with display: none is set to display: block, and if there's no parentNode, it'll add it to the body. It returns an Array that you can then feed to _revertDisplay() to have it revert all the changes it made.
+// _forceDisplay = e => {
+// 	let a = [],
+// 		parent;
+// 	while (e && e !== _body) {
+// 		parent = e.parentNode;
+// 		(_win.getComputedStyle(e).display === "none" || !parent) && a.push(e, e.style.display, parent) && (e.style.display = "block");
+// 		parent || _body.appendChild(e);
+// 		e = parent;
+// 	}
+// 	return a;
+// },
+// _revertDisplay = a => {
+// 	for (let i = 0; i < a.length; i+=3) {
+// 		a[i+1] ? (a[i].style.display = a[i+1]) : a[i].style.removeProperty("display");
+// 		a[i+2] || a[i].parentNode.removeChild(a[i]);
+// 	}
+// },
+_svgTemps = [],
+    //we create 3 elements for SVG, and 3 for other DOM elements and cache them for performance reasons. They get nested in _divContainer and _svgContainer so that just one element is added to the DOM on each successive attempt. Again, performance is key.
+_divTemps = [],
+    _getDocScrollTop = function _getDocScrollTop() {
+  return _win.pageYOffset || _doc.scrollTop || _docElement.scrollTop || _body.scrollTop || 0;
+},
+    _getDocScrollLeft = function _getDocScrollLeft() {
+  return _win.pageXOffset || _doc.scrollLeft || _docElement.scrollLeft || _body.scrollLeft || 0;
+},
+    _svgOwner = function _svgOwner(element) {
+  return element.ownerSVGElement || ((element.tagName + "").toLowerCase() === "svg" ? element : null);
+},
+    _isFixed = function _isFixed(element) {
+  if (_win.getComputedStyle(element).position === "fixed") {
+    return true;
+  }
+
+  element = element.parentNode;
+
+  if (element && element.nodeType === 1) {
+    // avoid document fragments which will throw an error.
+    return _isFixed(element);
+  }
+},
+    _createSibling = function _createSibling(element, i) {
+  if (element.parentNode && (_doc || _setDoc(element))) {
+    var svg = _svgOwner(element),
+        ns = svg ? svg.getAttribute("xmlns") || "http://www.w3.org/2000/svg" : "http://www.w3.org/1999/xhtml",
+        type = svg ? i ? "rect" : "g" : "div",
+        x = i !== 2 ? 0 : 100,
+        y = i === 3 ? 100 : 0,
+        css = "position:absolute;display:block;pointer-events:none;margin:0;padding:0;",
+        e = _doc.createElementNS ? _doc.createElementNS(ns.replace(/^https/, "http"), type) : _doc.createElement(type);
+
+    if (i) {
+      if (!svg) {
+        if (!_divContainer) {
+          _divContainer = _createSibling(element);
+          _divContainer.style.cssText = css;
+        }
+
+        e.style.cssText = css + "width:0.1px;height:0.1px;top:" + y + "px;left:" + x + "px";
+
+        _divContainer.appendChild(e);
+      } else {
+        _svgContainer || (_svgContainer = _createSibling(element));
+        e.setAttribute("width", 0.01);
+        e.setAttribute("height", 0.01);
+        e.setAttribute("transform", "translate(" + x + "," + y + ")");
+
+        _svgContainer.appendChild(e);
+      }
+    }
+
+    return e;
+  }
+
+  throw "Need document and parent.";
+},
+    _consolidate = function _consolidate(m) {
+  // replaces SVGTransformList.consolidate() because a bug in Firefox causes it to break pointer events. See https://gsap.com/forums/topic/23248-touch-is-not-working-on-draggable-in-firefox-windows-v324/?tab=comments#comment-109800
+  var c = new Matrix2D(),
+      i = 0;
+
+  for (; i < m.numberOfItems; i++) {
+    c.multiply(m.getItem(i).matrix);
+  }
+
+  return c;
+},
+    _getCTM = function _getCTM(svg) {
+  var m = svg.getCTM(),
+      transform;
+
+  if (!m) {
+    // Firefox returns null for getCTM() on root <svg> elements, so this is a workaround using a <g> that we temporarily append.
+    transform = svg.style[_transformProp];
+    svg.style[_transformProp] = "none"; // a bug in Firefox causes css transforms to contaminate the getCTM()
+
+    svg.appendChild(_gEl);
+    m = _gEl.getCTM();
+    svg.removeChild(_gEl);
+    transform ? svg.style[_transformProp] = transform : svg.style.removeProperty(_transformProp.replace(/([A-Z])/g, "-$1").toLowerCase());
+  }
+
+  return m || _identityMatrix.clone(); // Firefox will still return null if the <svg> has a width/height of 0 in the browser.
+},
+    _placeSiblings = function _placeSiblings(element, adjustGOffset) {
+  var svg = _svgOwner(element),
+      isRootSVG = element === svg,
+      siblings = svg ? _svgTemps : _divTemps,
+      parent = element.parentNode,
+      appendToEl = parent && !svg && parent.shadowRoot && parent.shadowRoot.appendChild ? parent.shadowRoot : parent,
+      container,
+      m,
+      b,
+      x,
+      y,
+      cs;
+
+  if (element === _win) {
+    return element;
+  }
+
+  siblings.length || siblings.push(_createSibling(element, 1), _createSibling(element, 2), _createSibling(element, 3));
+  container = svg ? _svgContainer : _divContainer;
+
+  if (svg) {
+    if (isRootSVG) {
+      b = _getCTM(element);
+      x = -b.e / b.a;
+      y = -b.f / b.d;
+      m = _identityMatrix;
+    } else if (element.getBBox) {
+      b = element.getBBox();
+      m = element.transform ? element.transform.baseVal : {}; // IE11 doesn't follow the spec.
+
+      m = !m.numberOfItems ? _identityMatrix : m.numberOfItems > 1 ? _consolidate(m) : m.getItem(0).matrix; // don't call m.consolidate().matrix because a bug in Firefox makes pointer events not work when consolidate() is called on the same tick as getBoundingClientRect()! See https://gsap.com/forums/topic/23248-touch-is-not-working-on-draggable-in-firefox-windows-v324/?tab=comments#comment-109800
+
+      x = m.a * b.x + m.c * b.y;
+      y = m.b * b.x + m.d * b.y;
+    } else {
+      // may be a <mask> which has no getBBox() so just use defaults instead of throwing errors.
+      m = new Matrix2D();
+      x = y = 0;
+    }
+
+    if (adjustGOffset && element.tagName.toLowerCase() === "g") {
+      x = y = 0;
+    }
+
+    (isRootSVG ? svg : parent).appendChild(container);
+    container.setAttribute("transform", "matrix(" + m.a + "," + m.b + "," + m.c + "," + m.d + "," + (m.e + x) + "," + (m.f + y) + ")");
+  } else {
+    x = y = 0;
+
+    if (_hasOffsetBug) {
+      // some browsers (like Safari) have a bug that causes them to misreport offset values. When an ancestor element has a transform applied, it's supposed to treat it as if it's position: relative (new context). Safari botches this, so we need to find the closest ancestor (between the element and its offsetParent) that has a transform applied and if one is found, grab its offsetTop/Left and subtract them to compensate.
+      m = element.offsetParent;
+      b = element;
+
+      while (b && (b = b.parentNode) && b !== m && b.parentNode) {
+        if ((_win.getComputedStyle(b)[_transformProp] + "").length > 4) {
+          x = b.offsetLeft;
+          y = b.offsetTop;
+          b = 0;
+        }
+      }
+    }
+
+    cs = _win.getComputedStyle(element);
+
+    if (cs.position !== "absolute" && cs.position !== "fixed") {
+      m = element.offsetParent;
+
+      while (parent && parent !== m) {
+        // if there's an ancestor element between the element and its offsetParent that's scrolled, we must factor that in.
+        x += parent.scrollLeft || 0;
+        y += parent.scrollTop || 0;
+        parent = parent.parentNode;
+      }
+    }
+
+    b = container.style;
+    b.top = element.offsetTop - y + "px";
+    b.left = element.offsetLeft - x + "px";
+    b[_transformProp] = cs[_transformProp];
+    b[_transformOriginProp] = cs[_transformOriginProp]; // b.border = m.border;
+    // b.borderLeftStyle = m.borderLeftStyle;
+    // b.borderTopStyle = m.borderTopStyle;
+    // b.borderLeftWidth = m.borderLeftWidth;
+    // b.borderTopWidth = m.borderTopWidth;
+
+    b.position = cs.position === "fixed" ? "fixed" : "absolute";
+    appendToEl.appendChild(container);
+  }
+
+  return container;
+},
+    _setMatrix = function _setMatrix(m, a, b, c, d, e, f) {
+  m.a = a;
+  m.b = b;
+  m.c = c;
+  m.d = d;
+  m.e = e;
+  m.f = f;
+  return m;
+};
+
+var Matrix2D = /*#__PURE__*/function () {
+  function Matrix2D(a, b, c, d, e, f) {
+    if (a === void 0) {
+      a = 1;
+    }
+
+    if (b === void 0) {
+      b = 0;
+    }
+
+    if (c === void 0) {
+      c = 0;
+    }
+
+    if (d === void 0) {
+      d = 1;
+    }
+
+    if (e === void 0) {
+      e = 0;
+    }
+
+    if (f === void 0) {
+      f = 0;
+    }
+
+    _setMatrix(this, a, b, c, d, e, f);
+  }
+
+  var _proto = Matrix2D.prototype;
+
+  _proto.inverse = function inverse() {
+    var a = this.a,
+        b = this.b,
+        c = this.c,
+        d = this.d,
+        e = this.e,
+        f = this.f,
+        determinant = a * d - b * c || 1e-10;
+    return _setMatrix(this, d / determinant, -b / determinant, -c / determinant, a / determinant, (c * f - d * e) / determinant, -(a * f - b * e) / determinant);
+  };
+
+  _proto.multiply = function multiply(matrix) {
+    var a = this.a,
+        b = this.b,
+        c = this.c,
+        d = this.d,
+        e = this.e,
+        f = this.f,
+        a2 = matrix.a,
+        b2 = matrix.c,
+        c2 = matrix.b,
+        d2 = matrix.d,
+        e2 = matrix.e,
+        f2 = matrix.f;
+    return _setMatrix(this, a2 * a + c2 * c, a2 * b + c2 * d, b2 * a + d2 * c, b2 * b + d2 * d, e + e2 * a + f2 * c, f + e2 * b + f2 * d);
+  };
+
+  _proto.clone = function clone() {
+    return new Matrix2D(this.a, this.b, this.c, this.d, this.e, this.f);
+  };
+
+  _proto.equals = function equals(matrix) {
+    var a = this.a,
+        b = this.b,
+        c = this.c,
+        d = this.d,
+        e = this.e,
+        f = this.f;
+    return a === matrix.a && b === matrix.b && c === matrix.c && d === matrix.d && e === matrix.e && f === matrix.f;
+  };
+
+  _proto.apply = function apply(point, decoratee) {
+    if (decoratee === void 0) {
+      decoratee = {};
+    }
+
+    var x = point.x,
+        y = point.y,
+        a = this.a,
+        b = this.b,
+        c = this.c,
+        d = this.d,
+        e = this.e,
+        f = this.f;
+    decoratee.x = x * a + y * c + e || 0;
+    decoratee.y = x * b + y * d + f || 0;
+    return decoratee;
+  };
+
+  return Matrix2D;
+}(); // Feed in an element and it'll return a 2D matrix (optionally inverted) so that you can translate between coordinate spaces.
+// Inverting lets you translate a global point into a local coordinate space. No inverting lets you go the other way.
+// We needed this to work around various browser bugs, like Firefox doesn't accurately report getScreenCTM() when there
+// are transforms applied to ancestor elements.
+// The matrix math to convert any x/y coordinate is as follows, which is wrapped in a convenient apply() method of Matrix2D above:
+//     tx = m.a * x + m.c * y + m.e
+//     ty = m.b * x + m.d * y + m.f
+
+function getGlobalMatrix(element, inverse, adjustGOffset, includeScrollInFixed) {
+  // adjustGOffset is typically used only when grabbing an element's PARENT's global matrix, and it ignores the x/y offset of any SVG <g> elements because they behave in a special way.
+  if (!element || !element.parentNode || (_doc || _setDoc(element)).documentElement === element) {
+    return new Matrix2D();
+  }
+
+  var zeroScales = _forceNonZeroScale(element),
+      svg = _svgOwner(element),
+      temps = svg ? _svgTemps : _divTemps,
+      container = _placeSiblings(element, adjustGOffset),
+      b1 = temps[0].getBoundingClientRect(),
+      b2 = temps[1].getBoundingClientRect(),
+      b3 = temps[2].getBoundingClientRect(),
+      parent = container.parentNode,
+      isFixed = !includeScrollInFixed && _isFixed(element),
+      m = new Matrix2D((b2.left - b1.left) / 100, (b2.top - b1.top) / 100, (b3.left - b1.left) / 100, (b3.top - b1.top) / 100, b1.left + (isFixed ? 0 : _getDocScrollLeft()), b1.top + (isFixed ? 0 : _getDocScrollTop()));
+
+  parent.removeChild(container);
+
+  if (zeroScales) {
+    b1 = zeroScales.length;
+
+    while (b1--) {
+      b2 = zeroScales[b1];
+      b2.scaleX = b2.scaleY = 0;
+      b2.renderTransform(1, b2);
+    }
+  }
+
+  return inverse ? m.inverse() : m;
+}
+ // export function getMatrix(element) {
+// 	_doc || _setDoc(element);
+// 	let m = (_win.getComputedStyle(element)[_transformProp] + "").substr(7).match(/[-.]*\d+[.e\-+]*\d*[e\-\+]*\d*/g),
+// 		is2D = m && m.length === 6;
+// 	return !m || m.length < 6 ? new Matrix2D() : new Matrix2D(+m[0], +m[1], +m[is2D ? 2 : 4], +m[is2D ? 3 : 5], +m[is2D ? 4 : 12], +m[is2D ? 5 : 13]);
+// }
+
+/***/ }),
+
 /***/ "./node_modules/split-text-js/SplitTextJS.js":
 /*!***************************************************!*\
   !*** ./node_modules/split-text-js/SplitTextJS.js ***!
@@ -17287,6 +20612,45 @@ function initBoxAnimation() {
   });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initBoxAnimation);
+
+/***/ }),
+
+/***/ "./src/scripts/animations/dom.js":
+/*!***************************************!*\
+  !*** ./src/scripts/animations/dom.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+/* harmony import */ var gsap_Flip__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! gsap/Flip */ "./node_modules/gsap/Flip.js");
+
+
+gsap__WEBPACK_IMPORTED_MODULE_0__["default"].registerPlugin(gsap_Flip__WEBPACK_IMPORTED_MODULE_1__.Flip);
+function swap() {
+  var $firstContainer = document.getElementById('first-container');
+  var $secondContainer = document.getElementById('second-container');
+  var boxA = $firstContainer.querySelector('.box');
+  var boxB = $secondContainer.querySelector('.box');
+  var initialBoxState = gsap_Flip__WEBPACK_IMPORTED_MODULE_1__.Flip.getState([boxA, boxB]);
+  $firstContainer.removeChild(boxA);
+  $secondContainer.removeChild(boxB);
+  $firstContainer.appendChild(boxB);
+  $secondContainer.appendChild(boxA);
+  gsap_Flip__WEBPACK_IMPORTED_MODULE_1__.Flip.from(initialBoxState, {
+    duration: 1
+  });
+}
+function initDomChanges() {
+  document.getElementById('flip-boxes').addEventListener('click', function () {
+    swap();
+  });
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initDomChanges);
 
 /***/ }),
 
@@ -17926,6 +21290,45 @@ function initTabs() {
 
 /***/ }),
 
+/***/ "./src/scripts/animations/title.js":
+/*!*****************************************!*\
+  !*** ./src/scripts/animations/title.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+/* harmony import */ var gsap_SplitText__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! gsap/SplitText */ "./node_modules/gsap/SplitText.js");
+
+
+gsap__WEBPACK_IMPORTED_MODULE_0__["default"].registerPlugin(gsap_SplitText__WEBPACK_IMPORTED_MODULE_1__.SplitText);
+function initTextAnimation() {
+  var split = gsap_SplitText__WEBPACK_IMPORTED_MODULE_1__.SplitText.create("[data-animation=split]", {
+    type: "lines",
+    mask: 'lines',
+    autoSplit: true,
+    smartWrap: true
+  });
+  console.log(split);
+  gsap__WEBPACK_IMPORTED_MODULE_0__["default"].from(split.lines, {
+    y: function y() {
+      return gsap__WEBPACK_IMPORTED_MODULE_0__["default"].utils.random(-100, 100);
+    },
+    opacity: 0,
+    stagger: {
+      amount: .5,
+      from: 'random'
+    }
+  });
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initTextAnimation);
+
+/***/ }),
+
 /***/ "./src/scripts/helpers.js":
 /*!********************************!*\
   !*** ./src/scripts/helpers.js ***!
@@ -18007,7 +21410,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   GAP_LG_PX: () => (/* binding */ GAP_LG_PX)
 /* harmony export */ });
-/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
+/* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
 /* harmony import */ var _animations_blur__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animations/blur */ "./src/scripts/animations/blur.js");
 /* harmony import */ var _animations_box__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animations/box */ "./src/scripts/animations/box.js");
 /* harmony import */ var _animations_fade__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animations/fade */ "./src/scripts/animations/fade.js");
@@ -18020,6 +21423,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _animations_tabs__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./animations/tabs */ "./src/scripts/animations/tabs.js");
 /* harmony import */ var _lottie__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./lottie */ "./src/scripts/lottie.js");
 /* harmony import */ var _rive__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./rive */ "./src/scripts/rive.js");
+/* harmony import */ var _animations_dom__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./animations/dom */ "./src/scripts/animations/dom.js");
+/* harmony import */ var _animations_title__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./animations/title */ "./src/scripts/animations/title.js");
+/* harmony import */ var gsap_ScrollSmoother__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! gsap/ScrollSmoother */ "./node_modules/gsap/ScrollSmoother.js");
+
+
 
 
 
@@ -18034,11 +21442,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var GAP_LG_PX = parseInt(getComputedStyle(document.body).getPropertyValue('--spacing-lg').replace('rem', '') * 16);
+
+gsap__WEBPACK_IMPORTED_MODULE_14__["default"].registerPlugin(gsap_ScrollSmoother__WEBPACK_IMPORTED_MODULE_15__.ScrollSmoother);
+gsap_ScrollSmoother__WEBPACK_IMPORTED_MODULE_15__.ScrollSmoother.create({
+  smooth: 2,
+  effects: true
+});
 var DEV_MODE = true;
 document.addEventListener('DOMContentLoaded', function () {
   /* Temp check, remove this when deploying. */
   if (DEV_MODE) {
-    gsap__WEBPACK_IMPORTED_MODULE_12__["default"].set('.loader', {
+    gsap__WEBPACK_IMPORTED_MODULE_14__["default"].set('.loader', {
       display: 'none'
     });
   } else {
@@ -18056,6 +21470,8 @@ document.addEventListener('DOMContentLoaded', function () {
   (0,_animations_tabs__WEBPACK_IMPORTED_MODULE_9__["default"])();
   (0,_lottie__WEBPACK_IMPORTED_MODULE_10__["default"])();
   (0,_rive__WEBPACK_IMPORTED_MODULE_11__["default"])();
+  (0,_animations_dom__WEBPACK_IMPORTED_MODULE_12__["default"])();
+  (0,_animations_title__WEBPACK_IMPORTED_MODULE_13__["default"])();
 });
 
 /***/ }),
