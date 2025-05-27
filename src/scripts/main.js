@@ -17,6 +17,7 @@ import initTextAnimation from "./animations/title";
 export const GAP_LG_PX = parseInt(getComputedStyle(document.body).getPropertyValue('--spacing-lg').replace('rem', '') * 16);
 
 import { ScrollSmoother } from "gsap/ScrollSmoother";
+import loadSplineFiles from "./spline";
 
 gsap.registerPlugin(ScrollSmoother)
 
@@ -48,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadLottieFiles();
     loadRiveFiles();
+    loadSplineFiles();
 
     initDomChanges();
     initTextAnimation();

@@ -23,7 +23,7 @@ function swap() {
 }
 
 function initDomChanges() {
-    document.getElementById('flip-boxes').addEventListener('click', () => {
+    document.getElementById('flip-boxes')?.addEventListener('click', () => {
         swap();
     })
 }
